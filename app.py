@@ -15,7 +15,7 @@ import traceback
 
 from flask import Flask, request, jsonify, send_from_directory, send_file
 
-from tagger import tag_text, VOICES
+from tagger import tag_text, ALL_VOICES
 from pipeline import generate, OUTPUT_DIR, ensure_output_dir
 from examples import EXAMPLES, get_example_by_id, get_all_titles
 
@@ -46,7 +46,7 @@ def generate_audio():
     """
     Accept Tamil text, run tagger + pipeline, return audio URL and segments.
 
-    Request body: {"text": "Tamil text here..."}
+    Request body: {"text": "...", "narrator_voice": "ta-IN-PallaviNeural"}
     Response:     {"audio_url": "/output/abc123.mp3", "segments": [...]}
     """
     try:
@@ -61,17 +61,20 @@ def generate_audio():
         if len(text) > 10000:
             return jsonify({"error": "Text too long. Please keep it under 10,000 characters for the demo."}), 400
 
+        narrator_voice = data.get("narrator_voice", "ta-IN-PallaviNeural")
+
         # Step 1: Tag the text
         segments = tag_text(text)
         if not segments:
             return jsonify({"error": "Could not parse any segments from the text"}), 400
 
-        # Step 2: Generate audio
-        output_filename, segment_dicts = generate(segments)
+        # Step 2: Generate audio with choosable narrator
+        output_filename, segment_dicts = generate(segments, narrator_voice=narrator_voice)
 
         return jsonify({
             "audio_url": f"/output/{output_filename}",
             "segments": segment_dicts,
+            "narrator_voice": narrator_voice,
         })
 
     except Exception as e:
@@ -82,7 +85,10 @@ def generate_audio():
 @app.route("/voices", methods=["GET"])
 def get_voices():
     """Return the voice cast for display in the frontend."""
-    return jsonify({"voices": VOICES})
+    return jsonify({
+        "voices": ALL_VOICES,
+        "default_narrator": "ta-IN-PallaviNeural",
+    })
 
 
 @app.route("/examples", methods=["GET"])

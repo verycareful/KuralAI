@@ -32,14 +32,20 @@ All of this runs **locally**, uses **zero paid services**, and requires **no mod
 
 The web interface shows a color-coded breakdown of each detected segment — which speaker was assigned, what emotion was detected, and why — making the system fully **explainable**.
 
-## Voice Cast
+## Voice Cast (8 Neural Voices Across 4 Regions)
 
-| Voice | Role | Gender | Accent |
+Users can select their preferred **Narrator Voice** from the UI, and the remaining voices dynamically form the dialogue character pool (supporting up to 7 distinct character voices):
+
+| Voice | Region | Gender | Accent / Locale |
 |---|---|---|---|
-| `ta-IN-PallaviNeural` | 🟠 Narrator | Female | Indian Tamil |
-| `ta-IN-ValluvarNeural` | 🔵 Character 1 | Male | Indian Tamil |
-| `ta-LK-KumarNeural` | 🟢 Character 2 | Male | Sri Lankan Tamil |
-| `ta-LK-SaranyaNeural` | 🟣 Character 3 | Female | Sri Lankan Tamil |
+| `ta-IN-PallaviNeural` | 🇮🇳 India | Female | Indian Tamil (Default Narrator) |
+| `ta-IN-ValluvarNeural` | 🇮🇳 India | Male | Indian Tamil |
+| `ta-LK-KumarNeural` | 🇱🇰 Sri Lanka | Male | Sri Lankan Tamil |
+| `ta-LK-SaranyaNeural` | 🇱🇰 Sri Lanka | Female | Sri Lankan Tamil |
+| `ta-MY-KaniNeural` | 🇲🇾 Malaysia | Female | Malaysian Tamil |
+| `ta-MY-SuryaNeural` | 🇲🇾 Malaysia | Male | Malaysian Tamil |
+| `ta-SG-AnbuNeural` | 🇸🇬 Singapore | Male | Singaporean Tamil |
+| `ta-SG-VenbaNeural` | 🇸🇬 Singapore | Female | Singaporean Tamil |
 
 ## Emotion Detection
 

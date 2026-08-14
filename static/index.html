@@ -32,6 +32,10 @@
       --speaker-1: hsl(215, 70%, 55%);
       --speaker-2: hsl(150, 60%, 42%);
       --speaker-3: hsl(280, 55%, 55%);
+      --speaker-4: hsl(340, 65%, 55%);
+      --speaker-5: hsl(180, 60%, 40%);
+      --speaker-6: hsl(45, 90%, 45%);
+      --speaker-7: hsl(250, 60%, 60%);
       --radius-card: 12px;
       --radius-btn: 8px;
       --shadow-sm: 0 1px 3px hsla(30, 20%, 20%, 0.06), 0 1px 2px hsla(30, 20%, 20%, 0.04);
@@ -58,24 +62,26 @@
       position: fixed;
       inset: 0;
       pointer-events: none;
+      background:
+        radial-gradient(circle at 10% 20%, hsla(30, 50%, 90%, 0.3) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, hsla(20, 60%, 90%, 0.25) 0%, transparent 40%);
       z-index: 0;
-      opacity: 0.35;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
     }
 
     /* ===== Layout ===== */
     .container {
       position: relative;
       z-index: 1;
-      max-width: 760px;
+      width: 100%;
+      max-width: 820px;
       margin: 0 auto;
-      padding: 2rem 1.25rem 3rem;
+      padding: 2.5rem 1.25rem 3.5rem;
     }
 
     /* ===== Header ===== */
     header {
       text-align: center;
-      margin-bottom: 2.5rem;
+      margin-bottom: 2rem;
     }
 
     .app-title {
@@ -127,19 +133,39 @@
       box-shadow: var(--shadow-md);
     }
 
-    /* Example selector */
-    .example-row {
-      display: flex;
-      gap: 0.5rem;
-      align-items: center;
-      margin-bottom: 0.75rem;
+    /* Controls row / selectors */
+    .controls-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1rem;
     }
 
-    #exampleSelect {
-      flex: 1;
+    @media (max-width: 650px) {
+      .controls-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .control-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .control-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+    }
+
+    .custom-select {
+      width: 100%;
       font-family: var(--font-ui);
       font-size: 0.85rem;
-      padding: 0.5rem 0.75rem;
+      padding: 0.55rem 0.75rem;
       border: 1.5px solid var(--border);
       border-radius: var(--radius-btn);
       background: var(--bg);
@@ -149,17 +175,8 @@
       transition: border-color 200ms ease;
     }
 
-    #exampleSelect:focus {
+    .custom-select:focus {
       border-color: var(--accent);
-    }
-
-    .example-label {
-      font-size: 0.75rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--text-muted);
-      white-space: nowrap;
     }
 
     .card-label {
@@ -168,59 +185,55 @@
       text-transform: uppercase;
       letter-spacing: 0.06em;
       color: var(--text-muted);
-      margin-bottom: 0.75rem;
+      margin-bottom: 0.5rem;
+      display: block;
     }
 
     /* ===== Textarea ===== */
     #textInput {
       width: 100%;
-      min-height: 10rem;
-      resize: vertical;
+      min-height: 9.5rem;
       font-family: var(--font-tamil);
       font-size: 1.05rem;
       line-height: 1.8;
-      color: var(--text);
-      background: var(--bg);
+      padding: 0.85rem 1rem;
       border: 1.5px solid var(--border);
       border-radius: var(--radius-btn);
-      padding: 1rem 1.125rem;
-      transition: border-color 200ms ease, box-shadow 200ms ease;
+      background: var(--bg);
+      color: var(--text);
+      resize: vertical;
       outline: none;
-    }
-
-    #textInput::placeholder {
-      color: var(--text-light);
-      font-style: italic;
+      transition: border-color 200ms ease, box-shadow 200ms ease;
     }
 
     #textInput:focus {
       border-color: var(--accent);
-      box-shadow: 0 0 0 3px hsla(16, 70%, 50%, 0.12);
+      box-shadow: 0 0 0 3px hsl(16, 70%, 92%);
+    }
+
+    #textInput::placeholder {
+      color: var(--text-light);
+      font-family: var(--font-tamil);
+      font-size: 0.95rem;
     }
 
     .textarea-footer {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-top: 0.5rem;
-    }
-
-    #charCount {
-      font-size: 0.8rem;
-      color: var(--text-light);
-      font-variant-numeric: tabular-nums;
+      margin-top: 0.4rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
     }
 
     #validationMsg {
-      font-size: 0.8rem;
       color: var(--error);
+      display: none;
       font-weight: 500;
-      opacity: 0;
-      transition: opacity 200ms ease;
     }
 
     #validationMsg.visible {
-      opacity: 1;
+      display: inline;
     }
 
     /* ===== Generate Button ===== */
@@ -228,31 +241,31 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 0.6rem;
+      gap: 0.5rem;
       width: 100%;
       padding: 0.9rem 1.5rem;
       font-family: var(--font-ui);
       font-size: 1rem;
       font-weight: 600;
-      color: #fff;
+      letter-spacing: 0.02em;
+      color: white;
       background: var(--accent);
       border: none;
       border-radius: var(--radius-btn);
       cursor: pointer;
-      transition: background 200ms ease, transform 200ms ease, box-shadow 200ms ease;
-      box-shadow: var(--shadow-sm);
+      box-shadow: var(--shadow-md);
+      transition: background 200ms ease, transform 150ms ease, box-shadow 200ms ease;
       margin-bottom: 1.25rem;
     }
 
     #generateBtn:hover:not(:disabled) {
       background: var(--accent-hover);
+      box-shadow: var(--shadow-lg);
       transform: translateY(-1px);
-      box-shadow: var(--shadow-md);
     }
 
     #generateBtn:active:not(:disabled) {
       transform: translateY(0);
-      box-shadow: var(--shadow-sm);
     }
 
     #generateBtn:disabled {
@@ -260,19 +273,19 @@
       cursor: not-allowed;
     }
 
-    /* Spinner */
+    /* Loading spinner */
     .spinner {
       display: none;
       width: 18px;
       height: 18px;
-      border: 2.5px solid rgba(255, 255, 255, 0.35);
-      border-top-color: #fff;
+      border: 2px solid rgba(255, 255, 255, 0.35);
+      border-top-color: white;
       border-radius: 50%;
-      animation: spin 0.7s linear infinite;
+      animation: spin 700ms linear infinite;
     }
 
     #generateBtn.loading .spinner {
-      display: block;
+      display: inline-block;
     }
 
     @keyframes spin {
@@ -283,64 +296,64 @@
     #errorBanner {
       display: none;
       background: var(--error-bg);
-      border: 1px solid hsl(0, 50%, 85%);
-      border-left: 4px solid var(--error);
-      border-radius: var(--radius-btn);
-      padding: 0.85rem 1rem;
-      margin-bottom: 1.25rem;
-      font-size: 0.9rem;
       color: var(--error);
+      border: 1px solid hsl(0, 60%, 88%);
+      border-radius: var(--radius-btn);
+      padding: 0.75rem 1rem;
+      font-size: 0.85rem;
+      margin-bottom: 1.25rem;
       font-weight: 500;
-      animation: fadeSlideIn 300ms ease;
     }
 
     #errorBanner.visible {
-      display: block;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      animation: fadeIn 300ms ease;
     }
 
     /* ===== Voice Cast Legend ===== */
     .voice-legend {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.5rem 1rem;
-      justify-content: center;
-      margin-bottom: 1.25rem;
-      padding: 0.85rem 1rem;
+      gap: 0.6rem 1.25rem;
+      padding: 0.85rem 1.25rem;
       background: var(--surface);
+      border-radius: var(--radius-btn);
       border: 1px solid var(--border);
-      border-radius: var(--radius-card);
-      box-shadow: var(--shadow-sm);
+      margin-bottom: 1.25rem;
+      font-size: 0.78rem;
+      color: var(--text-muted);
     }
 
     .voice-item {
       display: flex;
       align-items: center;
-      gap: 0.4rem;
-      font-size: 0.78rem;
-      font-weight: 500;
-      color: var(--text-muted);
-      white-space: nowrap;
+      gap: 0.45rem;
     }
 
     .voice-dot {
-      width: 10px;
-      height: 10px;
+      width: 9px;
+      height: 9px;
       border-radius: 50%;
       flex-shrink: 0;
-      box-shadow: 0 0 0 2px hsla(0, 0%, 100%, 0.8), 0 1px 3px hsla(0, 0%, 0%, 0.12);
     }
 
-    .voice-dot.speaker-0 { background-color: var(--speaker-0); }
-    .voice-dot.speaker-1 { background-color: var(--speaker-1); }
-    .voice-dot.speaker-2 { background-color: var(--speaker-2); }
-    .voice-dot.speaker-3 { background-color: var(--speaker-3); }
+    .voice-dot.speaker-0 { background: var(--speaker-0); }
+    .voice-dot.speaker-1 { background: var(--speaker-1); }
+    .voice-dot.speaker-2 { background: var(--speaker-2); }
+    .voice-dot.speaker-3 { background: var(--speaker-3); }
+    .voice-dot.speaker-4 { background: var(--speaker-4); }
+    .voice-dot.speaker-5 { background: var(--speaker-5); }
+    .voice-dot.speaker-6 { background: var(--speaker-6); }
+    .voice-dot.speaker-7 { background: var(--speaker-7); }
 
     .voice-name {
       font-weight: 600;
       color: var(--text);
     }
 
-    /* ===== Segments Panel ===== */
+    /* ===== Tagged Segments Panel ===== */
     #segmentsPanel {
       display: none;
       margin-bottom: 1.25rem;
@@ -348,25 +361,29 @@
 
     #segmentsPanel.visible {
       display: block;
+      animation: fadeSlideIn 400ms ease;
     }
 
     .segments-header {
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      margin-bottom: 0.75rem;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding-bottom: 0.6rem;
+      border-bottom: 1px solid var(--border);
     }
 
     .segments-header h2 {
       font-size: 0.95rem;
-      font-weight: 600;
+      font-weight: 700;
       color: var(--text);
+      letter-spacing: -0.01em;
     }
 
     .segment-count {
-      font-size: 0.78rem;
-      color: var(--text-light);
-      background: var(--bg);
+      font-size: 0.75rem;
+      color: var(--accent);
+      background: var(--accent-light);
       padding: 0.2rem 0.65rem;
       border-radius: 99px;
       font-weight: 500;
@@ -381,15 +398,9 @@
       padding-right: 0.25rem;
     }
 
-    /* Scrollbar styling */
     #segmentsList::-webkit-scrollbar {
       width: 5px;
     }
-
-    #segmentsList::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
     #segmentsList::-webkit-scrollbar-thumb {
       background: var(--border);
       border-radius: 99px;
@@ -412,6 +423,10 @@
     .segment-item.s1 { border-left-color: var(--speaker-1); }
     .segment-item.s2 { border-left-color: var(--speaker-2); }
     .segment-item.s3 { border-left-color: var(--speaker-3); }
+    .segment-item.s4 { border-left-color: var(--speaker-4); }
+    .segment-item.s5 { border-left-color: var(--speaker-5); }
+    .segment-item.s6 { border-left-color: var(--speaker-6); }
+    .segment-item.s7 { border-left-color: var(--speaker-7); }
 
     @keyframes segmentReveal {
       to {
@@ -424,6 +439,7 @@
       display: flex;
       align-items: center;
       gap: 0.5rem;
+      flex-wrap: wrap;
     }
 
     .segment-speaker {
@@ -437,6 +453,10 @@
     .segment-speaker.sp1 { color: var(--speaker-1); }
     .segment-speaker.sp2 { color: var(--speaker-2); }
     .segment-speaker.sp3 { color: var(--speaker-3); }
+    .segment-speaker.sp4 { color: var(--speaker-4); }
+    .segment-speaker.sp5 { color: var(--speaker-5); }
+    .segment-speaker.sp6 { color: var(--speaker-6); }
+    .segment-speaker.sp7 { color: var(--speaker-7); }
 
     .emotion-badge {
       font-size: 0.7rem;
@@ -446,6 +466,14 @@
       background: var(--surface);
       color: var(--text-muted);
       border: 1px solid var(--border);
+    }
+
+    .voice-tag {
+      font-size: 0.68rem;
+      color: var(--text-light);
+      background: var(--surface);
+      padding: 0.1rem 0.4rem;
+      border-radius: 4px;
     }
 
     .segment-text {
@@ -574,19 +602,35 @@
     <header>
       <h1 class="app-title">குரல் AI</h1>
       <p class="app-subtitle">Expressive Tamil Audiobook Generator</p>
-      <p class="app-tagline">Multi-voice, emotion-aware Tamil text-to-speech — no training, no paid APIs</p>
+      <p class="app-tagline">Multi-voice, emotion-aware Tamil text-to-speech — 8 neural voices across India, Sri Lanka, Malaysia & Singapore</p>
       <div class="header-divider" aria-hidden="true"></div>
     </header>
 
     <!-- ===== Input Area ===== -->
     <section class="card" aria-label="Text input">
-      <label class="card-label" for="textInput">Tamil Text</label>
-      <div class="example-row">
-        <span class="example-label">Try an example:</span>
-        <select id="exampleSelect">
-          <option value="">— Select a passage —</option>
-        </select>
+      <div class="controls-grid">
+        <div class="control-item">
+          <label class="control-label" for="exampleSelect">📖 Try an example passage</label>
+          <select id="exampleSelect" class="custom-select">
+            <option value="">— Select a passage —</option>
+          </select>
+        </div>
+        <div class="control-item">
+          <label class="control-label" for="narratorSelect">🎙️ Narrator Voice</label>
+          <select id="narratorSelect" class="custom-select">
+            <option value="ta-IN-PallaviNeural">Pallavi (India · Female)</option>
+            <option value="ta-IN-ValluvarNeural">Valluvar (India · Male)</option>
+            <option value="ta-LK-KumarNeural">Kumar (Sri Lanka · Male)</option>
+            <option value="ta-LK-SaranyaNeural">Saranya (Sri Lanka · Female)</option>
+            <option value="ta-MY-KaniNeural">Kani (Malaysia · Female)</option>
+            <option value="ta-MY-SuryaNeural">Surya (Malaysia · Male)</option>
+            <option value="ta-SG-AnbuNeural">Anbu (Singapore · Male)</option>
+            <option value="ta-SG-VenbaNeural">Venba (Singapore · Female)</option>
+          </select>
+        </div>
       </div>
+
+      <label class="card-label" for="textInput">Tamil Text</label>
       <textarea
         id="textInput"
         rows="6"
@@ -609,28 +653,7 @@
     <div id="errorBanner" role="alert" aria-live="polite"></div>
 
     <!-- ===== Voice Cast Legend ===== -->
-    <nav class="voice-legend" aria-label="Voice cast">
-      <div class="voice-item">
-        <span class="voice-dot speaker-0" aria-hidden="true"></span>
-        <span class="voice-name">Narrator</span>
-        <span>(Pallavi) — Female</span>
-      </div>
-      <div class="voice-item">
-        <span class="voice-dot speaker-1" aria-hidden="true"></span>
-        <span class="voice-name">Character 1</span>
-        <span>(Valluvar) — Male</span>
-      </div>
-      <div class="voice-item">
-        <span class="voice-dot speaker-2" aria-hidden="true"></span>
-        <span class="voice-name">Character 2</span>
-        <span>(Kumar) — Male, Sri Lankan</span>
-      </div>
-      <div class="voice-item">
-        <span class="voice-dot speaker-3" aria-hidden="true"></span>
-        <span class="voice-name">Character 3</span>
-        <span>(Saranya) — Female, Sri Lankan</span>
-      </div>
-    </nav>
+    <nav id="voiceLegend" class="voice-legend" aria-label="Voice cast"></nav>
 
     <!-- ===== Tagged Segments Panel ===== -->
     <section id="segmentsPanel" class="card" aria-label="Tagged segments">
@@ -656,7 +679,7 @@
 
     <!-- ===== Footer ===== -->
     <footer>
-      <p>KuralAI &bull; No training &bull; No paid APIs &bull; Runs on a laptop</p>
+      <p>KuralAI &bull; 8 Neural Voices &bull; No paid APIs &bull; Zero training needed</p>
     </footer>
 
   </main>
@@ -679,14 +702,19 @@
       const audioPlayer    = document.getElementById('audioPlayer');
       const downloadBtn    = document.getElementById('downloadBtn');
       const exampleSelect  = document.getElementById('exampleSelect');
+      const narratorSelect = document.getElementById('narratorSelect');
+      const voiceLegend    = document.getElementById('voiceLegend');
 
-      // ===== Speaker Labels =====
-      const SPEAKER_LABELS = {
-        0: 'Narrator',
-        1: 'Character 1',
-        2: 'Character 2',
-        3: 'Character 3'
-      };
+      let allVoices = [
+        { name: 'ta-IN-PallaviNeural',  label: 'Pallavi',  gender: 'Female', region: 'India',     accent: 'Indian' },
+        { name: 'ta-IN-ValluvarNeural', label: 'Valluvar', gender: 'Male',   region: 'India',     accent: 'Indian' },
+        { name: 'ta-LK-KumarNeural',    label: 'Kumar',    gender: 'Male',   region: 'Sri Lanka', accent: 'Sri Lankan' },
+        { name: 'ta-LK-SaranyaNeural',  label: 'Saranya',  gender: 'Female', region: 'Sri Lanka', accent: 'Sri Lankan' },
+        { name: 'ta-MY-KaniNeural',     label: 'Kani',     gender: 'Female', region: 'Malaysia',  accent: 'Malaysian' },
+        { name: 'ta-MY-SuryaNeural',    label: 'Surya',    gender: 'Male',   region: 'Malaysia',  accent: 'Malaysian' },
+        { name: 'ta-SG-AnbuNeural',     label: 'Anbu',     gender: 'Male',   region: 'Singapore', accent: 'Singaporean' },
+        { name: 'ta-SG-VenbaNeural',    label: 'Venba',    gender: 'Female', region: 'Singapore', accent: 'Singaporean' },
+      ];
 
       // ===== Emotion Badges =====
       const EMOTION_MAP = {
@@ -700,12 +728,41 @@
         tender:   '💕 Tender'
       };
 
+      function updateVoiceLegend() {
+        const selectedNarrator = narratorSelect.value;
+        const narratorVoiceObj = allVoices.find(v => v.name === selectedNarrator) || allVoices[0];
+        const charVoices = allVoices.filter(v => v.name !== selectedNarrator);
+
+        voiceLegend.innerHTML = `
+          <div class="voice-item">
+            <span class="voice-dot speaker-0"></span>
+            <span class="voice-name">Narrator</span>
+            <span>(${narratorVoiceObj.label}) — ${narratorVoiceObj.gender}, ${narratorVoiceObj.region}</span>
+          </div>
+          <div class="voice-item">
+            <span class="voice-dot speaker-1"></span>
+            <span class="voice-name">Char 1</span>
+            <span>(${charVoices[0]?.label || 'Valluvar'}) — ${charVoices[0]?.region || 'India'}</span>
+          </div>
+          <div class="voice-item">
+            <span class="voice-dot speaker-2"></span>
+            <span class="voice-name">Char 2</span>
+            <span>(${charVoices[1]?.label || 'Kumar'}) — ${charVoices[1]?.region || 'Sri Lanka'}</span>
+          </div>
+          <div class="voice-item">
+            <span class="voice-dot speaker-3"></span>
+            <span class="voice-name">Char 3</span>
+            <span>(${charVoices[2]?.label || 'Saranya'}) — ${charVoices[2]?.region || 'Sri Lanka'}</span>
+          </div>
+        `;
+      }
+
+      narratorSelect.addEventListener('change', updateVoiceLegend);
+
       // ===== Character Count =====
       textInput.addEventListener('input', () => {
         const len = textInput.value.length;
         charCount.textContent = `${len.toLocaleString()} character${len !== 1 ? 's' : ''}`;
-
-        // Clear validation message on type
         if (len > 0) {
           validationMsg.classList.remove('visible');
         }
@@ -741,19 +798,28 @@
           const speakerIdx = seg.speaker_id != null ? seg.speaker_id : 0;
           const emotion    = seg.emotion || 'neutral';
           const text       = seg.text || '';
+          const voiceName  = seg.voice || '';
 
           const item = document.createElement('div');
-          item.className = `segment-item s${speakerIdx}`;
-          item.style.animationDelay = `${i * 60}ms`;
+          item.className = `segment-item s${speakerIdx % 8}`;
+          item.style.animationDelay = `${i * 50}ms`;
 
           // Meta row
           const meta = document.createElement('div');
           meta.className = 'segment-meta';
 
           const label = document.createElement('span');
-          label.className = `segment-speaker sp${speakerIdx}`;
-          label.textContent = seg.speaker_label || SPEAKER_LABELS[speakerIdx] || `Speaker ${speakerIdx}`;
+          label.className = `segment-speaker sp${speakerIdx % 8}`;
+          label.textContent = speakerIdx === 0 ? 'Narrator' : `Character ${speakerIdx}`;
           meta.appendChild(label);
+
+          if (voiceName) {
+            const vObj = allVoices.find(v => v.name === voiceName);
+            const vTag = document.createElement('span');
+            vTag.className = 'voice-tag';
+            vTag.textContent = vObj ? `${vObj.label} (${vObj.region})` : voiceName.split('-')[2] || voiceName;
+            meta.appendChild(vTag);
+          }
 
           if (emotion !== 'neutral' && EMOTION_MAP[emotion]) {
             const badge = document.createElement('span');
@@ -791,7 +857,6 @@
         validationMsg.classList.remove('visible');
         setLoading(true);
 
-        // Hide previous results
         segmentsPanel.classList.remove('visible');
         audioPanel.classList.remove('visible');
 
@@ -799,7 +864,10 @@
           const response = await fetch('/generate', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text })
+            body: JSON.stringify({
+              text,
+              narrator_voice: narratorSelect.value
+            })
           });
 
           if (!response.ok) {
@@ -807,20 +875,17 @@
             try {
               const errData = await response.json();
               if (errData.error) errMsg = errData.error;
-              if (errData.detail) errMsg = errData.detail;
-            } catch (_) { /* ignore parse error */ }
+            } catch (_) { /* ignore */ }
             showError(errMsg);
             return;
           }
 
           const data = await response.json();
 
-          // Render segments
           if (data.segments && data.segments.length > 0) {
             renderSegments(data.segments);
           }
 
-          // Setup audio player
           if (data.audio_url) {
             audioPlayer.src = data.audio_url;
             downloadBtn.href = data.audio_url;
@@ -829,7 +894,7 @@
 
         } catch (err) {
           console.error('Generation failed:', err);
-          showError('Network error — could not connect to the server. Please check your connection and try again.');
+          showError('Network error — could not connect to the server.');
         } finally {
           setLoading(false);
         }
@@ -842,6 +907,29 @@
           generateBtn.click();
         }
       });
+
+      // ===== Load Voices =====
+      async function loadVoices() {
+        try {
+          const res = await fetch('/voices');
+          if (!res.ok) return;
+          const data = await res.json();
+          if (data.voices && data.voices.length > 0) {
+            allVoices = data.voices;
+            narratorSelect.innerHTML = '';
+            data.voices.forEach(v => {
+              const opt = document.createElement('option');
+              opt.value = v.name;
+              opt.textContent = `${v.label} (${v.region} · ${v.gender})`;
+              if (v.name === (data.default_narrator || 'ta-IN-PallaviNeural')) {
+                opt.selected = true;
+              }
+              narratorSelect.appendChild(opt);
+            });
+          }
+        } catch (_) {}
+        updateVoiceLegend();
+      }
 
       // ===== Load Examples =====
       async function loadExamples() {
@@ -857,7 +945,7 @@
               exampleSelect.appendChild(opt);
             });
           }
-        } catch (_) { /* API not available (e.g., static hosting) */ }
+        } catch (_) {}
       }
 
       exampleSelect.addEventListener('change', async () => {
@@ -872,10 +960,11 @@
             textInput.dispatchEvent(new Event('input'));
             validationMsg.classList.remove('visible');
           }
-        } catch (_) { /* ignore */ }
+        } catch (_) {}
       });
 
-      // Load examples on page init
+      // Init
+      loadVoices();
       loadExamples();
     })();
   </script>

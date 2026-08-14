@@ -62,7 +62,28 @@ def test_examples():
         fetched = get_example_by_id(ex["id"])
         assert fetched is not None and fetched["id"] == ex["id"]
 
-    print(f"  ✅ All {len(EXAMPLES)} example passages validated")
+def test_voice_mapping():
+    print("Testing voice mapping and narrator selection...")
+    from tagger import ALL_VOICES, get_voice_map
+
+    assert len(ALL_VOICES) == 8, f"Expected 8 voices, got {len(ALL_VOICES)}"
+
+    # Default narrator
+    vmap = get_voice_map("ta-IN-PallaviNeural")
+    assert vmap[0] == "ta-IN-PallaviNeural"
+    assert vmap[1] != "ta-IN-PallaviNeural", "Character voice should not conflict with narrator"
+
+    # Custom male narrator
+    vmap_custom = get_voice_map("ta-IN-ValluvarNeural")
+    assert vmap_custom[0] == "ta-IN-ValluvarNeural"
+    assert vmap_custom[1] != "ta-IN-ValluvarNeural"
+
+    # Verify all 8 speakers map to valid voices
+    for sp_id in range(8):
+        assert sp_id in vmap_custom
+        assert any(v["name"] == vmap_custom[sp_id] for v in ALL_VOICES)
+
+    print("  ✅ Voice mapping and narrator selection tests passed")
 
 
 def main():
@@ -72,6 +93,7 @@ def main():
     try:
         test_tagger_segmentation()
         test_emotion_detection()
+        test_voice_mapping()
         test_examples()
         print("=" * 60)
         print("🎉 ALL TESTS PASSED SUCCESSFULLY!")

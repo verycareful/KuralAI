@@ -15,7 +15,7 @@ from typing import List, Tuple
 import edge_tts
 from pydub import AudioSegment
 
-from tagger import Segment, VOICES
+from tagger import Segment, ALL_VOICES, get_voice_map
 
 # ---------------------------------------------------------------------------
 # Config
@@ -32,9 +32,12 @@ def ensure_output_dir():
 # ---------------------------------------------------------------------------
 # Single-segment TTS
 # ---------------------------------------------------------------------------
-async def _synthesize_segment(segment: Segment, output_path: str) -> str:
+async def _synthesize_segment(segment: Segment, output_path: str, voice_map: dict = None) -> str:
     """Synthesize a single segment to an MP3 file using edge-tts."""
-    voice_name = VOICES[segment.speaker_id]["name"]
+    if voice_map and segment.speaker_id in voice_map:
+        voice_name = voice_map[segment.speaker_id]
+    else:
+        voice_name = "ta-IN-PallaviNeural"
 
     communicate = edge_tts.Communicate(
         text=segment.text,
@@ -48,10 +51,10 @@ async def _synthesize_segment(segment: Segment, output_path: str) -> str:
 # ---------------------------------------------------------------------------
 # Full pipeline
 # ---------------------------------------------------------------------------
-async def _generate_async(segments: List[Segment]) -> Tuple[str, List[dict]]:
+async def _generate_async(segments: List[Segment], narrator_voice: str = "ta-IN-PallaviNeural") -> Tuple[str, List[dict]]:
     """
     Async core of the pipeline.
-    1. Synthesize each segment to a temp MP3
+    1. Synthesize each segment to a temp MP3 using the chosen voice mapping
     2. Stitch them with pydub, inserting pauses on speaker changes
     3. Export the final MP3
     Returns (output_path, segment_dicts)
@@ -62,13 +65,14 @@ async def _generate_async(segments: List[Segment]) -> Tuple[str, List[dict]]:
         raise ValueError("No segments to synthesize")
 
     tmp_dir = tempfile.mkdtemp(prefix="kural_ai_")
+    voice_map = get_voice_map(narrator_voice)
 
     try:
         # Step 1: Synthesize all segments
         temp_files = []
         for i, seg in enumerate(segments):
             tmp_path = os.path.join(tmp_dir, f"seg_{i:04d}.mp3")
-            await _synthesize_segment(seg, tmp_path)
+            await _synthesize_segment(seg, tmp_path, voice_map=voice_map)
             temp_files.append(tmp_path)
 
         # Step 2: Load and stitch with pydub
@@ -96,8 +100,12 @@ async def _generate_async(segments: List[Segment]) -> Tuple[str, List[dict]]:
         output_path = os.path.join(OUTPUT_DIR, output_filename)
         combined.export(output_path, format="mp3")
 
-        # Build segment dicts for API response
-        segment_dicts = [seg.to_dict() for seg in segments]
+        # Build segment dicts for API response, adding active voice name
+        segment_dicts = []
+        for seg in segments:
+            d = seg.to_dict()
+            d["voice"] = voice_map.get(seg.speaker_id, "ta-IN-PallaviNeural")
+            segment_dicts.append(d)
 
         return output_filename, segment_dicts
 
@@ -106,12 +114,12 @@ async def _generate_async(segments: List[Segment]) -> Tuple[str, List[dict]]:
         shutil.rmtree(tmp_dir, ignore_errors=True)
 
 
-def generate(segments: List[Segment]) -> Tuple[str, List[dict]]:
+def generate(segments: List[Segment], narrator_voice: str = "ta-IN-PallaviNeural") -> Tuple[str, List[dict]]:
     """
     Synchronous wrapper for the async pipeline.
     Returns (output_filename, segment_dicts).
     """
-    return asyncio.run(_generate_async(segments))
+    return asyncio.run(_generate_async(segments, narrator_voice=narrator_voice))
 
 
 # ---------------------------------------------------------------------------

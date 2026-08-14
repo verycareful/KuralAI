@@ -11,17 +11,46 @@ from dataclasses import dataclass, asdict
 from typing import List
 
 # ---------------------------------------------------------------------------
-# Voice cast
+# All 8 available Tamil Neural Voices across 4 regions
 # ---------------------------------------------------------------------------
-VOICES = [
-    {"id": 0, "name": "ta-IN-PallaviNeural",  "label": "Narrator",    "gender": "F", "accent": "Indian"},
-    {"id": 1, "name": "ta-IN-ValluvarNeural",  "label": "Character 1", "gender": "M", "accent": "Indian"},
-    {"id": 2, "name": "ta-LK-KumarNeural",     "label": "Character 2", "gender": "M", "accent": "Sri Lankan"},
-    {"id": 3, "name": "ta-LK-SaranyaNeural",   "label": "Character 3", "gender": "F", "accent": "Sri Lankan"},
+ALL_VOICES = [
+    {"name": "ta-IN-PallaviNeural",  "label": "Pallavi",  "gender": "Female", "region": "India",     "accent": "Indian"},
+    {"name": "ta-IN-ValluvarNeural", "label": "Valluvar", "gender": "Male",   "region": "India",     "accent": "Indian"},
+    {"name": "ta-LK-KumarNeural",    "label": "Kumar",    "gender": "Male",   "region": "Sri Lanka", "accent": "Sri Lankan"},
+    {"name": "ta-LK-SaranyaNeural",  "label": "Saranya",  "gender": "Female", "region": "Sri Lanka", "accent": "Sri Lankan"},
+    {"name": "ta-MY-KaniNeural",     "label": "Kani",     "gender": "Female", "region": "Malaysia",  "accent": "Malaysian"},
+    {"name": "ta-MY-SuryaNeural",    "label": "Surya",    "gender": "Male",   "region": "Malaysia",  "accent": "Malaysian"},
+    {"name": "ta-SG-AnbuNeural",     "label": "Anbu",     "gender": "Male",   "region": "Singapore", "accent": "Singaporean"},
+    {"name": "ta-SG-VenbaNeural",    "label": "Venba",    "gender": "Female", "region": "Singapore", "accent": "Singaporean"},
 ]
 
+# Legacy default list for compatibility
+VOICES = ALL_VOICES
+
 NARRATOR_ID = 0
-DIALOGUE_VOICE_IDS = [1, 2, 3]  # round-robin pool for dialogue speakers
+# Dialogue pool supports up to 7 distinct character voices in a story
+DIALOGUE_VOICE_IDS = [1, 2, 3, 4, 5, 6, 7]
+
+
+def get_voice_map(narrator_voice: str = "ta-IN-PallaviNeural") -> dict:
+    """
+    Build a mapping of speaker_id -> voice_name.
+    speaker_id 0 = chosen narrator voice.
+    speaker_id 1..7 = remaining available voices for dialogue characters.
+    """
+    # Find valid narrator voice or fallback to Pallavi
+    valid_names = [v["name"] for v in ALL_VOICES]
+    if narrator_voice not in valid_names:
+        narrator_voice = "ta-IN-PallaviNeural"
+
+    # Remaining voices become the dialogue character pool
+    char_pool = [v["name"] for v in ALL_VOICES if v["name"] != narrator_voice]
+
+    mapping = {0: narrator_voice}
+    for i in range(1, 8):
+        mapping[i] = char_pool[(i - 1) % len(char_pool)]
+
+    return mapping
 
 # ---------------------------------------------------------------------------
 # Emotion keyword lists (stems / partial matches)
