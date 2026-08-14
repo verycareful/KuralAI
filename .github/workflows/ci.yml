@@ -16,9 +16,9 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # ── Job 1: Lint & Test the Python pipeline ──────────────────────────
+  # ── Job 1: Test the Python pipeline ────────────────────────────────
   test:
-    name: Test Pipeline
+    name: Run Test Suite
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -34,40 +34,8 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Run tagger unit test
-        run: python -c "
-          from tagger import tag_text;
-          segs = tag_text('அவன் வந்தான். \"வணக்கம்!\" என்றான் ராமன்.');
-          assert len(segs) >= 2, f'Expected >=2 segments, got {len(segs)}';
-          assert any(s.seg_type == 'dialogue' for s in segs), 'No dialogue detected';
-          assert any(s.emotion == 'excited' for s in segs), 'Exclamation emotion not detected';
-          print('✅ Tagger tests passed');
-          "
-
-      - name: Run emotion keyword tests
-        run: python -c "
-          from tagger import detect_emotion;
-          assert detect_emotion('கோபம் வந்தது') == 'angry', 'angry failed';
-          assert detect_emotion('சோகம் நிறைந்தது') == 'sad', 'sad failed';
-          assert detect_emotion('மகிழ்ச்சி பொங்கியது') == 'happy', 'happy failed';
-          assert detect_emotion('பயம் வந்தது') == 'fear', 'fear failed';
-          assert detect_emotion('ஆச்சரியம் ஆனது') == 'surprise', 'surprise failed';
-          assert detect_emotion('அன்பு நிறைந்தது') == 'tender', 'tender failed';
-          assert detect_emotion('என்ன நடந்தது?') == 'question', 'question failed';
-          assert detect_emotion('வா போகலாம்!') == 'excited', 'excited failed';
-          assert detect_emotion('அவன் வந்தான்') == 'neutral', 'neutral failed';
-          assert detect_emotion('முகத்தில் சோகம்') == 'sad', 'கத்த false positive in முகத்தில்';
-          print('✅ Emotion detection tests passed (10/10)');
-          "
-
-      - name: Verify examples load
-        run: python -c "
-          from examples import EXAMPLES, get_all_titles;
-          assert len(EXAMPLES) >= 8, f'Expected >=8 examples, got {len(EXAMPLES)}';
-          titles = get_all_titles();
-          assert all('id' in t and 'title' in t for t in titles);
-          print(f'✅ {len(EXAMPLES)} examples loaded successfully');
-          "
+      - name: Run test suite
+        run: python tests.py
 
   # ── Job 2: Deploy frontend showcase to GitHub Pages ─────────────────
   deploy:
