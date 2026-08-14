@@ -779,6 +779,8 @@
     (() => {
       'use strict';
 
+      const isStaticHost = window.location.hostname.includes('github.io') || window.location.protocol === 'file:';
+
       // ===== Static Fallback Dataset (Curated Tamil Passages) =====
       const STATIC_EXAMPLES = [
         {
@@ -1201,7 +1203,7 @@
 
       // ===== Load Voices =====
       async function loadVoices() {
-        if (!window.location.hostname.endsWith('github.io') && window.location.protocol !== 'file:') {
+        if (!isStaticHost) {
           try {
             const res = await fetch('/voices');
             if (res.ok) {
@@ -1229,7 +1231,7 @@
       async function loadExamples() {
         populateExampleDropdown(STATIC_EXAMPLES);
 
-        if (!window.location.hostname.endsWith('github.io') && window.location.protocol !== 'file:') {
+        if (!isStaticHost) {
           try {
             const res = await fetch('/examples');
             if (res.ok) {
