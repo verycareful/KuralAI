@@ -1,16 +1,12 @@
 # குரல் AI — Expressive Tamil Audiobook Generator
 
-<p align="center">
-  <strong>Multi-voice, emotion-aware Tamil text-to-speech</strong><br/>
-  No training · No paid APIs · Runs on a laptop
-</p>
+**Multi-voice, emotion-aware Tamil text-to-speech**  
+No training · No paid APIs · Runs on a laptop
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Python-3.12+-blue?logo=python&logoColor=white" alt="Python 3.12+"/>
-  <img src="https://img.shields.io/badge/TTS-Edge--TTS-orange" alt="Edge TTS"/>
-  <img src="https://img.shields.io/badge/License-MIT-green" alt="MIT License"/>
-  <img src="https://img.shields.io/badge/Cost-Zero-brightgreen" alt="Zero Cost"/>
-</p>
+[![Python 3.12+](https://img.shields.io/badge/Python-3.12+-blue?logo=python&logoColor=white)](https://python.org)
+[![TTS](https://img.shields.io/badge/TTS-Edge--TTS-orange)](https://github.com/rany2/edge-tts)
+[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+[![Cost](https://img.shields.io/badge/Cost-Zero-brightgreen)](https://github.com/verycareful/KuralAI)
 
 ---
 
@@ -19,7 +15,7 @@
 Kural AI transforms Tamil text into expressive, multi-voice audiobooks. Paste a Tamil story with dialogue and narration, and Kural AI will:
 
 1. **Detect dialogue vs. narration** using regex-based NLP (Tamil quote patterns, attribution verbs)
-2. **Assign distinct voices** to each character (4 neural voices — 2 Indian Tamil, 2 Sri Lankan Tamil)
+2. **Assign distinct voices** to each character (8 neural voices across India, Sri Lanka, Malaysia & Singapore)
 3. **Detect emotion** from Tamil keywords and punctuation (happy, sad, angry, fear, surprise, tender)
 4. **Adjust pacing** based on emotion (slower for sadness, faster for anger/excitement)
 5. **Generate a stitched audiobook** with natural pauses between speaker changes
