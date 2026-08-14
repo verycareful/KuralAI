@@ -28,9 +28,6 @@
       --border: hsl(30, 15%, 85%);
       --error: hsl(0, 65%, 50%);
       --error-bg: hsl(0, 60%, 96%);
-      --info-bg: hsl(210, 60%, 96%);
-      --info-border: hsl(210, 50%, 85%);
-      --info-text: hsl(210, 70%, 35%);
       --speaker-0: hsl(25, 80%, 55%);
       --speaker-1: hsl(215, 70%, 55%);
       --speaker-2: hsl(150, 60%, 42%);
@@ -324,15 +321,6 @@
 
     @keyframes spin {
       to { transform: rotate(360deg); }
-    }
-
-    /* Active segment playback highlight */
-    .segment-item.speaking {
-      border-left-color: var(--accent) !important;
-      background: hsl(16, 70%, 96%) !important;
-      box-shadow: 0 0 0 2px var(--accent);
-      transform: scale(1.01);
-      transition: all 200ms ease;
     }
 
     /* ===== Error Banner ===== */
@@ -758,7 +746,7 @@
 
     <!-- ===== Footer ===== -->
     <footer>
-      <p>KuralAI &bull; 8 Neural Voices &bull; Zero GPU &bull; No paid APIs</p>
+      <p>KuralAI &bull; 8 Neural Voices &bull; Zero GPU &bull; Live Edge-TTS Engine</p>
     </footer>
 
   </main>
@@ -767,67 +755,12 @@
     (() => {
       'use strict';
 
-      const isStaticHost = window.location.hostname.includes('github.io') || window.location.protocol === 'file:';
-
-      // ===== Static Fallback Dataset (Curated Tamil Passages) =====
-      const STATIC_EXAMPLES = [
-        {
-          id: 'village_reunion',
-          title: 'கிராமத்தில் மறுசந்திப்பு',
-          title_en: 'Village Reunion',
-          description: 'Two childhood friends meet after years apart — joy, surprise, nostalgia',
-          text: 'பத்து வருடங்களுக்குப் பிறகு முருகன் தன் சொந்த கிராமத்திற்குத் திரும்பினான். பழைய ஆலமரம் இன்னும் அங்கேயே நின்றது. அதன் நிழலில் ஒரு பழக்கமான உருவம் தெரிந்தது.\n\n"அடடா, முருகனா? நம்பவே முடியவில்லை!" என்றான் செல்வம்.\n\nமுருகன் ஆச்சரியத்துடன் நின்றான்.\n\n"செல்வம்! எவ்வளவு நாள் ஆகிவிட்டது! உன்னைப் பார்த்து மிகவும் சந்தோஷமாக இருக்கிறது" என்றான் முருகன்.\n\n"நீ ஊரை விட்டுப் போனப்போது எனக்கு ரொம்ப வருத்தமாக இருந்தது. ஆனால் இப்போது திரும்பி வந்திருக்கிறாய், அதுவே போதும்" என்றான் செல்வம்.\n\nஇருவரும் ஆலமரத்தின் கீழ் அமர்ந்து, பழைய நினைவுகளைப் பகிர்ந்துகொண்டார்கள். காலை வெயில் அவர்கள் முகத்தில் மகிழ்ச்சியாகப் படர்ந்தது.'
-        },
-        {
-          id: 'hospital_scene',
-          title: 'மருத்துவமனையில் ஒரு நாள்',
-          title_en: 'A Day at the Hospital',
-          description: 'A family receives difficult news — fear, sadness, then hope',
-          text: 'மருத்துவமனையின் காத்திருப்பு அறையில் லட்சுமி பதற்றத்துடன் அமர்ந்திருந்தாள். அவள் கணவன் ராஜா அறுவை சிகிச்சையில் இருந்தான்.\n\n"அம்மா, பயப்படாதீர்கள். எல்லாம் சரியாகும்" என்றான் மகன் கார்த்திக்.\n\nலட்சுமி கண்ணீரை துடைத்தாள்.\n\n"எனக்கு மிகவும் பயமாக இருக்கிறது. உன் அப்பாவுக்கு ஒன்றும் ஆகிவிடக்கூடாது" என்றாள் லட்சுமி.\n\nமூன்று மணி நேரம் கழித்து, மருத்துவர் வெளியே வந்தார்.\n\n"கவலைப்படாதீர்கள். அறுவை சிகிச்சை வெற்றிகரமாக முடிந்தது!" என்றார் மருத்துவர்.\n\nலட்சுமியின் முகத்தில் நிம்மதி பரவியது. கார்த்திக் தன் அம்மாவை அரவணைத்தான்.\n\n"நன்றி கடவுளே! ஆனந்தம் தாங்கவில்லை!" என்றாள் லட்சுமி.'
-        },
-        {
-          id: 'school_competition',
-          title: 'பள்ளிப் போட்டி',
-          title_en: 'The School Competition',
-          description: 'A student\'s journey through a speech competition — nervousness, encouragement, triumph',
-          text: 'பேச்சுப் போட்டியின் நாள் வந்துவிட்டது. தமிழ்ச்செல்வி மேடையின் பின்னால் நடுங்கிக்கொண்டிருந்தாள்.\n\n"எனக்கு மிகவும் பயமாக இருக்கிறது. நான் மறந்துவிடுவேனோ?" என்றாள் தமிழ்ச்செல்வி.\n\nஆசிரியர் மீனாட்சி அவளருகில் வந்தாள்.\n\n"பயப்படாதே! நீ நன்றாகத் தயாராகியிருக்கிறாய். உன்னால் முடியும்" என்றாள் ஆசிரியர்.\n\nதமிழ்ச்செல்வி மேடையில் ஏறினாள். முதல் சில வரிகள் நடுக்கத்துடன் வந்தன. ஆனால் மெல்ல மெல்ல அவள் குரலில் உற்சாகமும் தன்னம்பிக்கையும் வந்தது.\n\nபத்து நிமிடங்கள் கழித்து, பார்வையாளர்கள் எழுந்து நின்று கைதட்டினார்கள்.\n\n"முதல் பரிசு — தமிழ்ச்செல்வி!" என்று அறிவித்தார் தலைமை ஆசிரியர்.\n\n"ஆஹா! நம்பவே முடியவில்லை! மிகவும் சந்தோஷம்!" என்றாள் தமிழ்ச்செல்வி.\n\nஅவள் கண்களில் மகிழ்ச்சிக் கண்ணீர் வழிந்தது.'
-        },
-        {
-          id: 'fisher_storm',
-          title: 'மீனவனும் புயலும்',
-          title_en: 'The Fisherman and the Storm',
-          description: 'A fisherman faces a storm at sea — tension, fear, survival, relief',
-          text: 'கடல் அன்று காலையில் அமைதியாக இருந்தது. வேலன் தன் படகில் மீன்பிடிக்கப் புறப்பட்டான்.\n\nமதியம் ஆனதும் வானம் திடீரென இருண்டது. காற்று பயங்கரமாக வீசத் தொடங்கியது.\n\n"ஐயோ! புயல் வருகிறது! கரைக்குத் திரும்ப வேண்டும்!" என்று வேலன் அலறினான்.\n\nஅலைகள் படகை ஆட்டிப்படைத்தன. வேலன் பீதியுடன் கயிறுகளை இறுக்கிப் பிடித்தான்.\n\n"கடவுளே, என்னைக் காப்பாற்று! என் குடும்பத்தை நினைத்தால் கண்ணீர் வருகிறது" என்றான் வேலன்.\n\nஇரண்டு மணி நேரம் போராடிய பிறகு, புயல் மெல்ல தணிந்தது. தொலைவில் கரை தெரிந்தது.\n\nவேலன் பத்திரமாகக் கரை சேர்ந்தான். அவன் மனைவி வசந்தா ஓடி வந்தாள்.\n\n"நீ உயிரோடு திரும்பிவிட்டாய்! எனக்கு ஆனந்தம் தாங்கவில்லை!" என்றாள் வசந்தா.\n\nவேலன் அவளை அன்புடன் அரவணைத்தான். அந்த நாள் அவன் வாழ்வில் மறக்க முடியாத நாளாக மாறியது.'
-        },
-        {
-          id: 'family_dispute',
-          title: 'குடும்பச் சண்டை',
-          title_en: 'The Family Dispute',
-          description: 'An argument between brothers over family land — anger, resentment, reconciliation',
-          text: 'அப்பா இறந்த பிறகு, சொத்துப் பிரச்சனை குடும்பத்தை உலுக்கியது.\n\n"இந்த நிலம் முழுவதும் எனக்குத்தான் சேர வேண்டும்! நான்தான் அப்பாவை கடைசி வரை பார்த்துக்கொண்டேன்!" என்றான் மூத்த மகன் சுரேஷ்.\n\nஇளைய மகன் ரமேஷ் கோபத்துடன் எழுந்தான்.\n\n"என்ன அநியாயம் இது? நானும் அப்பாவின் மகன்தான்! எனக்கு எந்த உரிமையும் இல்லையா?" என்றான் ரமேஷ்.\n\nஅம்மா சரோஜா கண்ணீருடன் குறுக்கிட்டாள்.\n\n"நிறுத்துங்கள்! உங்கள் அப்பா இருந்திருந்தால் இதைப் பார்த்து எவ்வளவு வேதனைப்பட்டிருப்பார். சகோதரர்களுக்குள் இப்படி சண்டையா? வெட்கமாக இல்லையா?" என்றாள் சரோஜா.\n\nஇருவரும் தலை குனிந்தார்கள். அம்மாவின் கண்ணீர் அவர்களின் கோபத்தை ஆற்றியது.\n\n"சரி அம்மா, மன்னிக்கவும். நாங்கள் பேசி சரி செய்துகொள்கிறோம்" என்றான் சுரேஷ்.\n\nரமேஷ் அண்ணனின் கையைப் பிடித்தான். குடும்பப் பாசம் எல்லாவற்றையும் வென்றது.'
-        },
-        {
-          id: 'love_letter',
-          title: 'காதல் கடிதம்',
-          title_en: 'The Love Letter',
-          description: 'A young woman finds an old love letter — tenderness, nostalgia, bittersweet emotion',
-          text: 'பழைய புத்தகங்களை சுத்தம் செய்யும்போது, மஞ்சள் நிற காகிதம் ஒன்று கீழே விழுந்தது. அனிதா அதை எடுத்துப் பார்த்தாள்.\n\nஅது பிரவீனின் கடிதம்.\n\n"என் அன்பான அனிதாவுக்கு, உன் நினைவுகள் இல்லாத நாளே எனக்கு இல்லை. உன் சிரிப்பு என் வாழ்வின் இசை. நீ என் பக்கம் இல்லாத நேரங்களில் ஏக்கம் தாங்கவில்லை. என்றும் உன்னை நேசிக்கும் பிரவீன்" என்று எழுதியிருந்தது.\n\nஅனிதா கண்களில் கண்ணீர் வழிந்தது.\n\n"பிரவீன்... எத்தனை வருடங்கள் ஆகிவிட்டன" என்று மெல்ல முணுமுணுத்தாள்.\n\nஅவள் அந்தக் கடிதத்தை நெஞ்சோடு அணைத்துக்கொண்டாள். பழைய காதல் நினைவுகள் மனதில் வெள்ளமாகப் பாய்ந்தன.'
-        },
-        {
-          id: 'market_day',
-          title: 'சந்தை நாள்',
-          title_en: 'Market Day',
-          description: 'A lively market scene with haggling and humour — everyday Tamil life',
-          text: 'ஞாயிற்றுக்கிழமை சந்தை நாள். தெருவில் கடைகள் வரிசையாக நின்றன.\n\nபாட்டி கமலா காய்கறிக் கடையில் நின்றாள்.\n\n"தக்காளி கிலோ எவ்வளவு?" என்றாள் கமலா.\n\n"நாற்பது ரூபாய் பாட்டி" என்றான் கடைக்காரன் முத்து.\n\n"என்ன, நாற்பது ரூபாயா? கொள்ளையடிக்கிறாய்! இருபது ரூபாய்க்கு தா" என்றாள் கமலா.\n\n"ஐயோ பாட்டி, எனக்கே அவ்வளவு விலை. முப்பது ரூபாய் கொடுங்கள்" என்றான் முத்து.\n\nகமலா சிரித்தாள்.\n\n"சரி சரி, உன் முகத்தைப் பார்த்து முப்பது கொடுக்கிறேன். ஆனால் கொத்தமல்லி இலவசமாகப் போடு" என்றாள் கமலா.\n\nமுத்துவும் சிரித்தான். சந்தையின் கலகலப்பு காலை முழுவதும் தொடர்ந்தது.'
-        },
-        {
-          id: 'midnight_mystery',
-          title: 'நள்ளிரவு மர்மம்',
-          title_en: 'Midnight Mystery',
-          description: 'Strange noises in an old house at midnight — suspense, fear, twist ending',
-          text: 'நள்ளிரவு ஒரு மணி. பழைய வீட்டில் ஏதோ சத்தம் கேட்டது. பிரியா படுக்கையிலிருந்து திடுக்கிட்டு எழுந்தாள்.\n\n"யாரது?" என்று கத்தினாள் பிரியா.\n\nபதில் இல்லை. ஆனால் படிக்கட்டில் காலடி ஓசை கேட்டது.\n\nபிரியா நடுங்கிக்கொண்டே மெல்ல கதவைத் திறந்தாள். இருட்டில் ஒரு நிழல் நகர்வது தெரிந்தது.\n\n"ஐயோ! பயமாக இருக்கிறது! யாராவது இருக்கிறீர்களா?" என்றாள் பிரியா.\n\nதிடீரென விளக்கு எரிந்தது.\n\n"ஆச்சரியம்!" என்றாள் பிரியா.\n\nஅது அவள் பூனை மிட்டு! சமையலறையில் பாலைக் கொட்டிவிட்டு ஓடிக்கொண்டிருந்தது.\n\n"அட மிட்டு! நீயா? என்னை இவ்வளவு பயமுறுத்திவிட்டாய்!" என்று சிரித்தாள் பிரியா.\n\nஅவள் பூனையை எடுத்து அரவணைத்தாள். நள்ளிரவு பயம் சிரிப்பில் முடிந்தது.'
-        }
-      ];
+      // ===== Backend API Configuration =====
+      // When accessed from localhost or local Flask, use relative path ''.
+      // When accessed across origins, connect to the active backend endpoint.
+      const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+        ? '' 
+        : 'http://localhost:5000';
 
       // ===== DOM References =====
       const textInput      = document.getElementById('textInput');
@@ -836,7 +769,6 @@
       const generateBtn    = document.getElementById('generateBtn');
       const btnLabel       = document.getElementById('btnLabel');
       const btnIcon        = document.getElementById('btnIcon');
-      const infoBanner     = document.getElementById('infoBanner');
       const errorBanner    = document.getElementById('errorBanner');
       const segmentsPanel  = document.getElementById('segmentsPanel');
       const segmentsList   = document.getElementById('segmentsList');
@@ -847,8 +779,6 @@
       const exampleSelect  = document.getElementById('exampleSelect');
       const narratorSelect = document.getElementById('narratorSelect');
       const voiceLegend    = document.getElementById('voiceLegend');
-
-      let currentSelectedExampleId = null;
 
       let allVoices = [
         { name: 'ta-IN-PallaviNeural',  label: 'Pallavi',  gender: 'Female', region: 'India',     accent: 'Indian' },
@@ -872,100 +802,6 @@
         surprise: 'Surprise',
         tender:   'Tender'
       };
-
-      const EMOTION_LEXICON = {
-        angry: ['கோபம்', 'சினம்', 'ஆத்திரம்', 'சீற்றம்', 'வெறுப்பு', 'ரௌத்திரம்', 'எரிச்சல்', 'பகை'],
-        fear: ['பயம்', 'அச்சம்', 'திகில்', 'பீதி', 'நடுக்கம்', 'பதற்றம்', 'அதிர்ச்சி', 'மிரட்சி'],
-        sad: ['சோகம்', 'கண்ணீர்', 'வருத்தம்', 'துன்பம்', 'வேதனை', 'இழப்பு', 'கவலை', 'ஏக்கம்', 'அழுகை', 'துயரம்'],
-        surprise: ['ஆச்சரியம்', 'வியப்பு', 'அதிசயம்', 'அற்புதம்', 'திகைப்பு', 'பிரமிப்பு', 'ஆஹா'],
-        happy: ['மகிழ்ச்சி', 'சந்தோஷம்', 'ஆனந்தம்', 'உற்சாகம்', 'களிப்பு', 'புன்னகை', 'சிரிப்பு', 'வெற்றி'],
-        tender: ['அன்பு', 'காதல்', 'பாசம்', 'நேசம்', 'அரவணைப்பு', 'ஆறுதல்', 'கருணை', 'பரிவு', 'மன்னிப்பு']
-      };
-
-      const VERB_HEURISTICS = [
-        'என்றான்', 'என்றாள்', 'என்றார்', 'என்றனர்', 'என்றார்கள்',
-        'கேட்டான்', 'கேட்டாள்', 'கேட்டார்', 'கேட்டனர்', 'கேட்டார்கள்',
-        'சொன்னான்', 'சொன்னாள்', 'சொன்னார்', 'சொன்னார்கள்',
-        'கூறினான்', 'கூறினாள்', 'கூறினார்', 'கூறினார்கள்',
-        'அலறினான்', 'அலறினாள்', 'முணுமுணுத்தாள்', 'முணுமுணுத்தான்'
-      ];
-
-      // ===== Client-Side Regex NLP Tagger =====
-      function clientTagText(text, narratorVoice) {
-        const clean = text.replace(/\r\n/g, '\n').replace(/[ \t]+/g, ' ').trim();
-        if (!clean) return [];
-
-        const pattern = /(["“«][^"”»]+["”»])/g;
-        const parts = clean.split(pattern);
-
-        const segments = [];
-        let currentCharId = 1;
-        const narratorVoiceObj = allVoices.find(v => v.name === narratorVoice) || allVoices[0];
-        const charVoices = allVoices.filter(v => v.name !== narratorVoice);
-
-        for (let i = 0; i < parts.length; i++) {
-          const raw = parts[i].trim();
-          if (!raw) continue;
-
-          const isQuote = (raw.startsWith('"') && raw.endsWith('"')) ||
-                          (raw.startsWith('“') && raw.endsWith('”')) ||
-                          (raw.startsWith('«') && raw.endsWith('»')) ||
-                          (raw.startsWith('‘') && raw.endsWith('’'));
-
-          if (isQuote) {
-            const stripped = raw.slice(1, -1).trim();
-            if (!stripped) continue;
-
-            let emotion = 'neutral';
-            if (stripped.includes('!')) emotion = 'excited';
-            else if (stripped.includes('?')) emotion = 'question';
-
-            if (emotion === 'neutral' || emotion === 'excited' || emotion === 'question') {
-              for (const [cat, words] of Object.entries(EMOTION_LEXICON)) {
-                if (words.some(w => stripped.includes(w))) {
-                  emotion = cat;
-                  break;
-                }
-              }
-            }
-
-            const nextPart = (i + 1 < parts.length) ? parts[i + 1] : '';
-            const hasVerb = VERB_HEURISTICS.some(v => nextPart.includes(v));
-
-            const spId = currentCharId;
-            const vObj = charVoices[(spId - 1) % charVoices.length] || allVoices[1];
-
-            segments.push({
-              text: stripped,
-              speaker_id: spId,
-              emotion: emotion,
-              seg_type: 'dialogue',
-              voice: vObj.name
-            });
-
-            if (hasVerb) {
-              currentCharId = (currentCharId % 7) + 1;
-            }
-          } else {
-            let emotion = 'neutral';
-            for (const [cat, words] of Object.entries(EMOTION_LEXICON)) {
-              if (words.some(w => raw.includes(w))) {
-                emotion = cat;
-                break;
-              }
-            }
-
-            segments.push({
-              text: raw,
-              speaker_id: 0,
-              emotion: emotion,
-              seg_type: 'narration',
-              voice: narratorVoiceObj.name
-            });
-          }
-        }
-        return segments;
-      }
 
       function updateVoiceLegend() {
         const selectedNarrator = narratorSelect.value;
@@ -1016,15 +852,6 @@
         errorBanner.classList.remove('visible');
       }
 
-      function showInfo(message) {
-        infoBanner.innerHTML = `<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/></svg> <span>${message}</span>`;
-        infoBanner.classList.add('visible');
-      }
-
-      function hideInfo() {
-        infoBanner.classList.remove('visible');
-      }
-
       function setLoading(loading) {
         generateBtn.disabled = loading;
         if (loading) {
@@ -1036,68 +863,6 @@
           if (btnIcon) btnIcon.style.display = 'inline-block';
           btnLabel.textContent = 'Generate Audiobook';
         }
-      }
-
-      // ===== In-Browser Speech Synthesis Sequencer (for custom text on static hosts) =====
-      let speechTimer = null;
-      function playSegmentsWithSpeechSynthesis(segments) {
-        if (!('speechSynthesis' in window)) return;
-        window.speechSynthesis.cancel();
-        clearTimeout(speechTimer);
-
-        const voices = window.speechSynthesis.getVoices();
-        const tamilVoice = voices.find(v => v.lang && v.lang.startsWith('ta')) || 
-                           voices.find(v => v.lang && v.lang.includes('IN')) || null;
-
-        let currentIdx = 0;
-
-        function speakNext() {
-          if (currentIdx >= segments.length) {
-            document.querySelectorAll('.segment-item').forEach(el => el.classList.remove('speaking'));
-            return;
-          }
-
-          const seg = segments[currentIdx];
-          const segmentEls = document.querySelectorAll('.segment-item');
-          segmentEls.forEach((el, idx) => {
-            if (idx === currentIdx) {
-              el.classList.add('speaking');
-              el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            } else {
-              el.classList.remove('speaking');
-            }
-          });
-
-          const utterance = new SpeechSynthesisUtterance(seg.text);
-          if (tamilVoice) utterance.voice = tamilVoice;
-          utterance.lang = 'ta-IN';
-
-          // Emotion prosody modulation
-          if (seg.emotion === 'angry' || seg.emotion === 'excited') utterance.rate = 1.15;
-          else if (seg.emotion === 'sad') utterance.rate = 0.85;
-          else if (seg.emotion === 'surprise') utterance.rate = 1.12;
-          else utterance.rate = 1.0;
-
-          // Multi-speaker pitch differentiation
-          if (seg.speaker_id === 0) utterance.pitch = 1.0;
-          else if (seg.speaker_id % 2 === 1) utterance.pitch = 1.15;
-          else utterance.pitch = 0.85;
-
-          utterance.onend = () => {
-            currentIdx++;
-            const pauseMs = seg.speaker_id === 0 ? 200 : 450;
-            speechTimer = setTimeout(speakNext, pauseMs);
-          };
-
-          utterance.onerror = () => {
-            currentIdx++;
-            speakNext();
-          };
-
-          window.speechSynthesis.speak(utterance);
-        }
-
-        speakNext();
       }
 
       function renderSegments(segments) {
@@ -1150,7 +915,7 @@
         segmentsPanel.classList.add('visible');
       }
 
-      // ===== Generate Handler =====
+      // ===== Live Generate Request =====
       generateBtn.addEventListener('click', async () => {
         hideError();
 
@@ -1167,37 +932,9 @@
         segmentsPanel.classList.remove('visible');
         audioPanel.classList.remove('visible');
 
-        // 1. Static Host Mode (GitHub Pages / offline)
-        if (isStaticHost) {
-          setTimeout(() => {
-            const segments = clientTagText(text, narratorSelect.value);
-            renderSegments(segments);
-
-            // Check if text matches a curated example passage
-            const matchedEx = STATIC_EXAMPLES.find(ex => ex.id === currentSelectedExampleId || ex.text.trim() === text);
-            if (matchedEx) {
-              const audioUrl = `demo/${matchedEx.id}.mp3`;
-              audioPlayer.src = audioUrl;
-              downloadBtn.href = audioUrl;
-              downloadBtn.download = `${matchedEx.id}.mp3`;
-              downloadBtn.style.display = 'inline-flex';
-              audioPanel.classList.add('visible');
-              audioPlayer.play().catch(() => {});
-            } else {
-              // Custom text: stream multi-voice speech synthesis in real-time
-              audioPanel.classList.add('visible');
-              downloadBtn.style.display = 'none';
-              playSegmentsWithSpeechSynthesis(segments);
-            }
-
-            setLoading(false);
-          }, 350);
-          return;
-        }
-
-        // 2. Dynamic Backend Mode (Flask / Edge-TTS)
         try {
-          const response = await fetch('/generate', {
+          const endpoint = API_BASE ? `${API_BASE}/generate` : '/generate';
+          const response = await fetch(endpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -1207,7 +944,12 @@
           });
 
           if (!response.ok) {
-            throw new Error(`Server status ${response.status}`);
+            let errorText = `Server error (${response.status})`;
+            try {
+              const errJson = await response.json();
+              if (errJson.error) errorText = errJson.error;
+            } catch (_) {}
+            throw new Error(errorText);
           }
 
           const data = await response.json();
@@ -1217,21 +959,17 @@
           }
 
           if (data.audio_url) {
-            audioPlayer.src = data.audio_url;
-            downloadBtn.href = data.audio_url;
+            const audioSrc = API_BASE ? `${API_BASE}${data.audio_url}` : data.audio_url;
+            audioPlayer.src = audioSrc;
+            downloadBtn.href = audioSrc;
             downloadBtn.download = 'kural_ai_audiobook.mp3';
-            downloadBtn.style.display = 'inline-flex';
             audioPanel.classList.add('visible');
             audioPlayer.play().catch(() => {});
           }
 
         } catch (err) {
-          // Graceful seamless fallback
-          const segments = clientTagText(text, narratorSelect.value);
-          renderSegments(segments);
-          audioPanel.classList.add('visible');
-          downloadBtn.style.display = 'none';
-          playSegmentsWithSpeechSynthesis(segments);
+          console.error('Generation error:', err);
+          showError(`Live generation failed: ${err.message}. Please verify python app.py is running.`);
         } finally {
           setLoading(false);
         }
@@ -1245,71 +983,67 @@
         }
       });
 
-      // ===== Populate Example Select =====
-      function populateExampleDropdown(examplesList) {
-        exampleSelect.innerHTML = '<option value="">— Select a passage —</option>';
-        examplesList.forEach(ex => {
-          const opt = document.createElement('option');
-          opt.value = ex.id;
-          opt.textContent = `${ex.title} — ${ex.title_en}`;
-          exampleSelect.appendChild(opt);
-        });
-      }
-
-      // ===== Load Voices =====
+      // ===== Load Voices from Live Backend =====
       async function loadVoices() {
-        if (!isStaticHost) {
-          try {
-            const res = await fetch('/voices');
-            if (res.ok) {
-              const data = await res.json();
-              if (data.voices && data.voices.length > 0) {
-                allVoices = data.voices;
-                narratorSelect.innerHTML = '';
-                data.voices.forEach(v => {
-                  const opt = document.createElement('option');
-                  opt.value = v.name;
-                  opt.textContent = `${v.label} (${v.region} · ${v.gender})`;
-                  if (v.name === (data.default_narrator || 'ta-IN-PallaviNeural')) {
-                    opt.selected = true;
-                  }
-                  narratorSelect.appendChild(opt);
-                });
-              }
+        try {
+          const endpoint = API_BASE ? `${API_BASE}/voices` : '/voices';
+          const res = await fetch(endpoint);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.voices && data.voices.length > 0) {
+              allVoices = data.voices;
+              narratorSelect.innerHTML = '';
+              data.voices.forEach(v => {
+                const opt = document.createElement('option');
+                opt.value = v.name;
+                opt.textContent = `${v.label} (${v.region} · ${v.gender})`;
+                if (v.name === (data.default_narrator || 'ta-IN-PallaviNeural')) {
+                  opt.selected = true;
+                }
+                narratorSelect.appendChild(opt);
+              });
             }
-          } catch (_) {}
-        }
+          }
+        } catch (_) {}
         updateVoiceLegend();
       }
 
-      // ===== Load Examples =====
+      // ===== Load Examples from Live Backend =====
       async function loadExamples() {
-        populateExampleDropdown(STATIC_EXAMPLES);
-
-        if (!isStaticHost) {
-          try {
-            const res = await fetch('/examples');
-            if (res.ok) {
-              const data = await res.json();
-              if (data.examples && data.examples.length > 0) {
-                populateExampleDropdown(data.examples);
-              }
+        try {
+          const endpoint = API_BASE ? `${API_BASE}/examples` : '/examples';
+          const res = await fetch(endpoint);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.examples && data.examples.length > 0) {
+              exampleSelect.innerHTML = '<option value="">— Select a passage —</option>';
+              data.examples.forEach(ex => {
+                const opt = document.createElement('option');
+                opt.value = ex.id;
+                opt.textContent = `${ex.title} — ${ex.title_en}`;
+                exampleSelect.appendChild(opt);
+              });
             }
-          } catch (_) {}
-        }
+          }
+        } catch (_) {}
       }
 
-      exampleSelect.addEventListener('change', () => {
+      exampleSelect.addEventListener('change', async () => {
         const id = exampleSelect.value;
-        currentSelectedExampleId = id;
         if (!id) return;
 
-        const localEx = STATIC_EXAMPLES.find(ex => ex.id === id);
-        if (localEx && localEx.text) {
-          textInput.value = localEx.text;
-          textInput.dispatchEvent(new Event('input'));
-          validationMsg.classList.remove('visible');
-        }
+        try {
+          const endpoint = API_BASE ? `${API_BASE}/examples/${id}` : `/examples/${id}`;
+          const res = await fetch(endpoint);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.text) {
+              textInput.value = data.text;
+              textInput.dispatchEvent(new Event('input'));
+              validationMsg.classList.remove('visible');
+            }
+          }
+        } catch (_) {}
       });
 
       // Initialize
