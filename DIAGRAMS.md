@@ -31,10 +31,10 @@ flowchart TD
         F --> G["Normalize Whitespace"]
         G --> H["Regex Dialogue Extraction<br/>(Smart quotes, ASCII quotes, Guillemets)"]
         H --> I["Segment Text into Narration & Dialogue blocks"]
-        I --> J["Speaker Attribution Analysis<br/>(Check verbs: என்றார், கேட்டாள், etc.)"]
-        J --> K["Assign Speaker IDs (0: Narrator, 1..3: Characters)"]
-        K --> L["Word-Boundary Emotion Detection<br/>(Angry, Fear, Sad, Surprise, Happy, Tender, Punctuation)"]
-        L --> M["Map Emotion to TTS Rate (-15% to +15%)"]
+        I --> J["Gender Attribution & Character Tracking<br/>(Morphology: என்றார், கேட்டாள், முருகன், வசந்தா...)"]
+        J --> K["Assign Gender-Consistent Voices & Persistent Character IDs"]
+        K --> L["Word-Boundary Navarasa Emotion Detection<br/>(Angry, Fear, Sad, Surprise, Happy, Tender, Punctuation)"]
+        L --> M["Calculate Prosody Modulation (Rate: ±15%, Pitch: ±10Hz, Volume: ±15%)"]
         M --> N["Produce List of Segment Objects"]
     end
 

@@ -1,7 +1,7 @@
 # குரல் AI — Expressive Tamil Audiobook Generator
 
-**Multi-voice, emotion-aware Tamil text-to-speech**  
-No training · No paid APIs · Runs on a laptop
+**Multi-Voice, Emotion-Aware Tamil Text-to-Speech Engine**  
+Zero GPU · Zero Paid APIs · Open Source · Cloud & Local Deployment
 
 [![Python 3.12+](https://img.shields.io/badge/Python-3.12+-blue?logo=python&logoColor=white)](https://python.org)
 [![TTS](https://img.shields.io/badge/TTS-Edge--TTS-orange)](https://github.com/rany2/edge-tts)
@@ -10,159 +10,177 @@ No training · No paid APIs · Runs on a laptop
 
 ---
 
-## What is Kural AI?
+## Overview
 
-Kural AI transforms Tamil text into expressive, multi-voice audiobooks. Paste a Tamil story with dialogue and narration, and Kural AI will:
+Kural AI transforms raw Tamil literary and conversational text into expressive, multi-character audiobooks. By combining rule-based morphological NLP, Navarasa emotion modulation, and neural speech synthesis, Kural AI provides:
 
-1. **Detect dialogue vs. narration** using regex-based NLP (Tamil quote patterns, attribution verbs)
-2. **Assign distinct voices** to each character (8 neural voices across India, Sri Lanka, Malaysia & Singapore)
-3. **Detect emotion** from Tamil keywords and punctuation (happy, sad, angry, fear, surprise, tender)
-4. **Adjust pacing** based on emotion (slower for sadness, faster for anger/excitement)
-5. **Generate a stitched audiobook** with natural pauses between speaker changes
+1. **Dialogue vs. Narration Segmentation**: Identifies dialogue blocks using Tamil punctuation conventions (smart quotes, ASCII quotes, guillemets) and attribution verbs.
+2. **Gender-Consistent Voice Mapping**: Accurately maps male characters to male voices and female characters to female voices using verb morphology (`என்றான்` vs. `என்றாள்`) and character noun analysis.
+3. **Persistent Character Voice Consistency**: Tracks character names across scenes so that recurring characters retain their exact voice throughout the entire audiobook.
+4. **Navarasa Emotion & Prosody Modulation**: Dynamically modulates speech rate, pitch frequency, and volume gain based on 65+ classical Navarasa keywords and punctuation.
+5. **Silence & Cadence Management**: Inserts 450ms pauses on speaker transitions and 200ms pauses between same-speaker clauses for natural human conversational cadence.
+6. **Plain Baseline Comparison**: Generates side-by-side comparative audio against a flat, single-voice monotone Microsoft TTS baseline.
 
-All of this runs **locally**, uses **zero paid services**, and requires **no model training**.
-
-## Demo
-
-> Paste Tamil text → Hit Generate → Hear multi-voice, emotion-aware audio
-
-The web interface shows a color-coded breakdown of each detected segment — which speaker was assigned, what emotion was detected, and why — making the system fully **explainable**.
+---
 
 ## Voice Cast (8 Neural Voices Across 4 Regions)
 
-Users can select their preferred **Narrator Voice** from the UI, and the remaining voices dynamically form the dialogue character pool (supporting up to 7 distinct character voices):
+Kural AI integrates all 8 Microsoft Neural Tamil voices across India, Sri Lanka, Malaysia, and Singapore:
 
-| Voice | Region | Gender | Accent / Locale |
-|---|---|---|---|
-| `ta-IN-PallaviNeural` | India | Female | Indian Tamil (Default Narrator) |
-| `ta-IN-ValluvarNeural` | India | Male | Indian Tamil |
-| `ta-LK-KumarNeural` | Sri Lanka | Male | Sri Lankan Tamil |
-| `ta-LK-SaranyaNeural` | Sri Lanka | Female | Sri Lankan Tamil |
-| `ta-MY-KaniNeural` | Malaysia | Female | Malaysian Tamil |
-| `ta-MY-SuryaNeural` | Malaysia | Male | Malaysian Tamil |
-| `ta-SG-AnbuNeural` | Singapore | Male | Singaporean Tamil |
-| `ta-SG-VenbaNeural` | Singapore | Female | Singaporean Tamil |
+| Voice Name | Region | Gender | Accent / Locale | Role Pool |
+| :--- | :--- | :--- | :--- | :--- |
+| `ta-IN-PallaviNeural` | India | Female | Indian Tamil | Default Narrator / Female Characters |
+| `ta-IN-ValluvarNeural` | India | Male | Indian Tamil | Male Characters / Narrator |
+| `ta-LK-KumarNeural` | Sri Lanka | Male | Sri Lankan Tamil | Male Characters |
+| `ta-LK-SaranyaNeural` | Sri Lanka | Female | Sri Lankan Tamil | Female Characters |
+| `ta-MY-KaniNeural` | Malaysia | Female | Malaysian Tamil | Female Characters |
+| `ta-MY-SuryaNeural` | Malaysia | Male | Malaysian Tamil | Male Characters |
+| `ta-SG-AnbuNeural` | Singapore | Male | Singaporean Tamil | Male Characters |
+| `ta-SG-VenbaNeural` | Singapore | Female | Singaporean Tamil | Female Characters |
 
-## Emotion Detection
+---
 
-Kural AI detects **9 emotion states** using a combination of Tamil keyword matching and punctuation analysis:
+## Emotion & SSML Prosody Modulation
 
-| Emotion | TTS Rate | Trigger Examples |
-|---|---|---|
-| Neutral | +0% | Default (no keywords or punctuation) |
-| Excited | +10% | `!` punctuation |
-| Question | +5% | `?` punctuation |
-| Sad | -15% | சோகம், கண்ணீர், வருத்தம், துன்பம், வேதனை, இழப்பு, கவலை... |
-| Angry | +15% | கோபம், சினம், ஆத்திரம், சீற்றம், வெறுப்பு, ரௌத்திரம்... |
-| Happy | +5% | மகிழ்ச்சி, சந்தோஷம், ஆனந்தம், உற்சாகம், களிப்பு... |
-| Fear | +8% | பயம், அச்சம், திகில், பீதி, நடுக்கம், பதற்றம்... |
-| Surprise | +12% | ஆச்சரியம், வியப்பு, அதிசயம், அற்புதம், திகைப்பு... |
-| Tender | -8% | அன்பு, காதல், பாசம், நேசம், அரவணைப்பு, ஆறுதல்... |
+When an emotion is detected via Tamil keyword matching or punctuation analysis, the synthesis engine modulates three core acoustic parameters alongside dynamic pause insertion:
 
-The vocabulary draws from the **Navarasa** (nine classical emotions) tradition and modern Tamil usage, totalling **65+ keywords** across 6 categories.
+| Emotion | Speed (Rate) | Pitch (Frequency) | Volume (Gain) | Acoustic Effect & SSML Rationale |
+| :--- | :---: | :---: | :---: | :--- |
+| **Angry (ரௌத்திரம்)** | **`+15%`** | **`+6Hz`** | **`+15%`** | Fast, loud, tense pitch conveying high aggression and forceful projection. |
+| **Sad (கருணை/சோகம்)** | **`-15%`** | **`-6Hz`** | **`-10%`** | Slow, subdued, lower pitch conveying melancholic weight and grief. |
+| **Surprise (அற்புதம்)** | **`+12%`** | **`+10Hz`** | **`+10%`** | Sharp elevated pitch and tempo reflecting sudden shock and wonder. |
+| **Excited / Joy (உற்சாகம்)** | **`+10%`** | **`+6Hz`** | **`+10%`** | Bright pitch and brisk tempo for exclamation and triumph. |
+| **Fear (பயானகம்)** | **`+8%`** | **`+8Hz`** | **`+5%`** | High, trembling pitch and hurried pace conveying panic and anxiety. |
+| **Tender / Love (சிருங்காரம்)** | **`-8%`** | **`-3Hz`** | **`-15%`** | Soft, intimate whisper-level volume with gentle, elongated delivery. |
+| **Question (வினா)** | **`+5%`** | **`+5Hz`** | **`+0%`** | Rising sentence-final pitch inflection for interrogative queries. |
+| **Neutral (சாந்தம்)** | **`+0%`** | **`+0Hz`** | **`+0%`** | Balanced conversational baseline for descriptive background narration. |
+
+---
+
+## Gender Attribution & Character Consistency Engine
+
+The attribution engine in `tagger.py` operates on Tamil grammar and morphology:
+
+1. **Suffix Morphological Analysis**:
+   - **Female verbs** (`-ஆள்`): `என்றாள்`, `கேட்டாள்`, `சொன்னாள்`, `கூறினாள்`, `அலறினாள்`, `முணுமுணுத்தாள்`...
+   - **Male verbs** (`-ஆன்`): `என்றான்`, `கேட்டான்`, `சொன்னான்`, `கூறினான்`, `அலறினான்`, `முணுமுணுத்தான்`...
+2. **Context Window Scanning**:
+   - Scans 80 characters preceding and following each quote to extract character nouns (`முருகன்`, `செல்வம்`, `வசந்தா`, `லட்சுமி`, `அம்மா`, `ஆசிரியர்`...).
+3. **Character Voice Registry**:
+   - When a character is registered, their assigned voice is locked for all subsequent dialogue appearances in the text.
+
+---
+
+## Architecture & Data Flow
+
+```
++-------------------------------------------------------------+
+|                      Browser Frontend                       |
+|  - Dual Action Buttons: Expressive Audiobook vs Plain TTS   |
+|  - Real-time Tagged Segment Breakdown & Voice Cast View    |
+|  - Side-by-Side Comparative Audio Players                   |
++------------------------------+------------------------------+
+                               | POST /generate (or /generate_baseline)
+                               v
++-------------------------------------------------------------+
+|                     Flask API (app.py)                      |
+|  - Request Validation & Health Check Endpoints              |
+|  - Native Cross-Origin Resource Sharing (CORS)              |
++------------------------------+------------------------------+
+                               |
+                               v
++-------------------------------------------------------------+
+|                   NLP Tagger (tagger.py)                    |
+|  - Dialogue & Narration Segmentation (Regex NLP)            |
+|  - Gender Attribution & Persistent Character Tracking       |
+|  - Navarasa Emotion Detection (Rate, Pitch, Volume)         |
++------------------------------+------------------------------+
+                               | List[Segment]
+                               v
++-------------------------------------------------------------+
+|                 Audio Pipeline (pipeline.py)                |
+|  - Async Edge-TTS Synthesis per Segment                     |
+|  - PyDub Audio Stitching & Dynamic Pause Management         |
+|  - 450ms Silence (Speaker Change) / 200ms (Same Speaker)   |
+|  - MP3 Export to output/ directory                          |
++-------------------------------------------------------------+
+```
+
+---
 
 ## Quick Start
 
-### Prerequisites
+### Local Setup
 
-- Python 3.12+
-- FFmpeg (for audio stitching)
+1. **Clone repository**:
+   ```bash
+   git clone https://github.com/verycareful/KuralAI.git
+   cd KuralAI
+   ```
 
-### Install
+2. **Install Python dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-```bash
-# Clone the repo
-git clone https://github.com/verycareful/KuralAI.git
-cd KuralAI
+3. **Install FFmpeg** (required by PyDub for MP3 concatenation):
+   - **Windows**: `winget install Gyan.FFmpeg` or download from ffmpeg.org
+   - **macOS**: `brew install ffmpeg`
+   - **Ubuntu/Debian**: `sudo apt install ffmpeg`
 
-# Install dependencies
-pip install -r requirements.txt
-```
+4. **Launch Application**:
+   ```bash
+   python app.py
+   ```
+   Open **http://localhost:5000** in your browser.
 
-### Run
+5. **Run Automated Test Suite**:
+   ```bash
+   python tests.py
+   ```
 
-```bash
-python app.py
-```
+---
 
-Open **http://localhost:5000** in your browser.
+## Cloud Deployment
 
-### Test the pipeline directly
+### 1. Render.com (1-Click Blueprint)
 
-```bash
-python test_sample.py
-```
+The repository includes a ready-to-deploy `render.yaml` configuration:
+1. Connect repository on [Render Dashboard](https://dashboard.render.com).
+2. Select **Blueprint** or **Web Service**.
+3. Render builds the Docker container in the **Singapore** region with Python 3.12 and FFmpeg pre-configured.
 
-This runs the tagger + pipeline on a sample Tamil paragraph and generates an MP3 in the `output/` directory.
+### 2. Hugging Face Spaces (Docker)
 
-## Architecture
+1. Create a new Space on [Hugging Face Spaces](https://huggingface.co/new-space) with the **Docker** SDK.
+2. Push repository:
+   ```bash
+   git remote add space https://huggingface.co/spaces/<your-username>/KuralAI
+   git push space main
+   ```
 
-```
-Browser (index.html)
-    │
-    ├── POST /generate  ──→  tagger.py (regex NLP)
-    │                            │
-    │                            ▼
-    │                        pipeline.py
-    │                            │
-    │                     ┌──────┼──────┐
-    │                     ▼      ▼      ▼
-    │                  edge-tts calls (per segment)
-    │                     │      │      │
-    │                     └──────┼──────┘
-    │                            ▼
-    │                     pydub stitching
-    │                     (450ms speaker-change pauses)
-    │                            │
-    │                            ▼
-    └── audio_url ◄──── output/<id>.mp3
-```
+---
 
 ## Project Structure
 
 ```
-├── app.py              # Flask server — API endpoints
-├── tagger.py           # Regex NLP — dialogue/narration, speakers, emotion
-├── pipeline.py         # edge-tts synthesis + pydub audio stitching
-├── examples.py         # 8 curated Tamil example passages
-├── test_sample.py      # Standalone pipeline test
-├── requirements.txt    # Python dependencies
-├── static/
-│   └── index.html      # Single-page frontend (vanilla HTML/CSS/JS)
-├── .github/
-│   └── workflows/
-│       └── ci.yml      # GitHub Actions — test + deploy to Pages
-└── output/             # Generated MP3s (gitignored)
+.
+|-- app.py              # Flask server with /generate, /generate_baseline, /voices, /examples
+|-- tagger.py           # NLP engine: segmentation, gender mapping, emotion detection
+|-- pipeline.py         # TTS synthesis (rate, pitch, volume) & audio stitching
+|-- examples.py         # 8 curated Tamil example passages
+|-- tests.py            # Comprehensive automated test suite
+|-- Dockerfile          # Container specification with Python 3.12 & FFmpeg
+|-- render.yaml         # Render deployment blueprint (Region: Singapore)
+|-- requirements.txt    # Python dependencies (Flask, edge-tts, pydub)
+|-- DIAGRAMS.md         # Architecture, sequence, state, and component diagrams
+|-- static/
+|   `-- index.html      # Single-page interface (vanilla HTML/CSS/JS)
+`-- output/             # Generated audio files (gitignored)
 ```
 
-## Tech Stack
-
-| Layer | Technology | Why |
-|---|---|---|
-| TTS | [edge-tts](https://github.com/rany2/edge-tts) | Free Microsoft neural voices, no API key, 4 Tamil voices |
-| Audio | [pydub](https://github.com/jiaaro/pydub) + FFmpeg | Simple audio manipulation, segment stitching |
-| NLP | Pure Python `re` | Zero dependencies, no GPU, instant, explainable |
-| Backend | [Flask](https://flask.palletsprojects.com/) | Minimal, well-known, easy to demo |
-| Frontend | Vanilla HTML/CSS/JS | No build step, no framework overhead |
-
-## Known Limitations & Future Work
-
-### Current limitations (by design for hackathon scope)
-- **Speaker attribution is heuristic** — round-robin with simple attribution verb detection, not true character-name recognition
-- **Emotion detection is keyword-based** — not a trained sentiment classifier, but intentionally explainable
-- **Synchronous processing** — works well for demo-length text, would need a job queue for long documents
-
-### Future directions
-- LLM-based tagging for character-name recognition and context-aware emotion
-- Prosody control (pitch + volume, not just rate) once edge-tts supports it
-- Batch processing and async job queue for book-length texts
-- SSML generation for finer-grained speech control
-- On-device deployment (edge-tts works offline with cached voices)
-
-## Team
-
-**KuralAI** — Problem Statement 3
+---
 
 ## License
 
-[MIT](LICENSE)
+MIT License. Developed for open-source Tamil AI audio accessibility.
