@@ -52,7 +52,7 @@ jobs:
       - name: Create Pages directory
         run: |
           mkdir -p _site
-          cp static/index.html _site/index.html
+          cp -r static/* _site/
 
           # Create a 404 page that redirects to index
           cat > _site/404.html << 'EOF'

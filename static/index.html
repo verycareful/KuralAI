@@ -28,6 +28,9 @@
       --border: hsl(30, 15%, 85%);
       --error: hsl(0, 65%, 50%);
       --error-bg: hsl(0, 60%, 96%);
+      --info-bg: hsl(210, 60%, 96%);
+      --info-border: hsl(210, 50%, 85%);
+      --info-text: hsl(210, 70%, 35%);
       --speaker-0: hsl(25, 80%, 55%);
       --speaker-1: hsl(215, 70%, 55%);
       --speaker-2: hsl(150, 60%, 42%);
@@ -321,6 +324,26 @@
 
     @keyframes spin {
       to { transform: rotate(360deg); }
+    }
+
+    /* ===== Notice / Status Banner ===== */
+    #infoBanner {
+      display: none;
+      background: var(--info-bg);
+      color: var(--info-text);
+      border: 1px solid var(--info-border);
+      border-radius: var(--radius-btn);
+      padding: 0.75rem 1rem;
+      font-size: 0.82rem;
+      margin-bottom: 1.25rem;
+      line-height: 1.5;
+    }
+
+    #infoBanner.visible {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+      animation: fadeIn 300ms ease;
     }
 
     /* ===== Error Banner ===== */
@@ -709,7 +732,8 @@
       <span id="btnLabel">Generate Audiobook</span>
     </button>
 
-    <!-- ===== Error Banner ===== -->
+    <!-- ===== Notice & Error Banners ===== -->
+    <div id="infoBanner" role="status" aria-live="polite"></div>
     <div id="errorBanner" role="alert" aria-live="polite"></div>
 
     <!-- ===== Voice Cast Legend ===== -->
@@ -755,7 +779,7 @@
     (() => {
       'use strict';
 
-      // ===== Static Fallback Dataset (Works on GitHub Pages & Offline) =====
+      // ===== Static Fallback Dataset (Curated Tamil Passages) =====
       const STATIC_EXAMPLES = [
         {
           id: 'village_reunion',
@@ -822,6 +846,7 @@
       const generateBtn    = document.getElementById('generateBtn');
       const btnLabel       = document.getElementById('btnLabel');
       const btnIcon        = document.getElementById('btnIcon');
+      const infoBanner     = document.getElementById('infoBanner');
       const errorBanner    = document.getElementById('errorBanner');
       const segmentsPanel  = document.getElementById('segmentsPanel');
       const segmentsList   = document.getElementById('segmentsList');
@@ -832,6 +857,8 @@
       const exampleSelect  = document.getElementById('exampleSelect');
       const narratorSelect = document.getElementById('narratorSelect');
       const voiceLegend    = document.getElementById('voiceLegend');
+
+      let currentSelectedExampleId = null;
 
       let allVoices = [
         { name: 'ta-IN-PallaviNeural',  label: 'Pallavi',  gender: 'Female', region: 'India',     accent: 'Indian' },
@@ -844,7 +871,7 @@
         { name: 'ta-SG-VenbaNeural',    label: 'Venba',    gender: 'Female', region: 'Singapore', accent: 'Singaporean' },
       ];
 
-      // ===== Emotion Map (Clean, Professional Text Labels) =====
+      // ===== Emotion Map =====
       const EMOTION_MAP = {
         excited:  'Excited',
         question: 'Question',
@@ -855,6 +882,100 @@
         surprise: 'Surprise',
         tender:   'Tender'
       };
+
+      const EMOTION_LEXICON = {
+        angry: ['கோபம்', 'சினம்', 'ஆத்திரம்', 'சீற்றம்', 'வெறுப்பு', 'ரௌத்திரம்', 'எரிச்சல்', 'பகை'],
+        fear: ['பயம்', 'அச்சம்', 'திகில்', 'பீதி', 'நடுக்கம்', 'பதற்றம்', 'அதிர்ச்சி', 'மிரட்சி'],
+        sad: ['சோகம்', 'கண்ணீர்', 'வருத்தம்', 'துன்பம்', 'வேதனை', 'இழப்பு', 'கவலை', 'ஏக்கம்', 'அழுகை', 'துயரம்'],
+        surprise: ['ஆச்சரியம்', 'வியப்பு', 'அதிசயம்', 'அற்புதம்', 'திகைப்பு', 'பிரமிப்பு', 'ஆஹா'],
+        happy: ['மகிழ்ச்சி', 'சந்தோஷம்', 'ஆனந்தம்', 'உற்சாகம்', 'களிப்பு', 'புன்னகை', 'சிரிப்பு', 'வெற்றி'],
+        tender: ['அன்பு', 'காதல்', 'பாசம்', 'நேசம்', 'அரவணைப்பு', 'ஆறுதல்', 'கருணை', 'பரிவு', 'மன்னிப்பு']
+      };
+
+      const VERB_HEURISTICS = [
+        'என்றான்', 'என்றாள்', 'என்றார்', 'என்றனர்', 'என்றார்கள்',
+        'கேட்டான்', 'கேட்டாள்', 'கேட்டார்', 'கேட்டனர்', 'கேட்டார்கள்',
+        'சொன்னான்', 'சொன்னாள்', 'சொன்னார்', 'சொன்னார்கள்',
+        'கூறினான்', 'கூறினாள்', 'கூறினார்', 'கூறினார்கள்',
+        'அலறினான்', 'அலறினாள்', 'முணுமுணுத்தாள்', 'முணுமுணுத்தான்'
+      ];
+
+      // ===== Client-Side Regex NLP Tagger =====
+      function clientTagText(text, narratorVoice) {
+        const clean = text.replace(/\r\n/g, '\n').replace(/[ \t]+/g, ' ').trim();
+        if (!clean) return [];
+
+        const pattern = /(["“«][^"”»]+["”»])/g;
+        const parts = clean.split(pattern);
+
+        const segments = [];
+        let currentCharId = 1;
+        const narratorVoiceObj = allVoices.find(v => v.name === narratorVoice) || allVoices[0];
+        const charVoices = allVoices.filter(v => v.name !== narratorVoice);
+
+        for (let i = 0; i < parts.length; i++) {
+          const raw = parts[i].trim();
+          if (!raw) continue;
+
+          const isQuote = (raw.startsWith('"') && raw.endsWith('"')) ||
+                          (raw.startsWith('“') && raw.endsWith('”')) ||
+                          (raw.startsWith('«') && raw.endsWith('»')) ||
+                          (raw.startsWith('‘') && raw.endsWith('’'));
+
+          if (isQuote) {
+            const stripped = raw.slice(1, -1).trim();
+            if (!stripped) continue;
+
+            let emotion = 'neutral';
+            if (stripped.includes('!')) emotion = 'excited';
+            else if (stripped.includes('?')) emotion = 'question';
+
+            if (emotion === 'neutral' || emotion === 'excited' || emotion === 'question') {
+              for (const [cat, words] of Object.entries(EMOTION_LEXICON)) {
+                if (words.some(w => stripped.includes(w))) {
+                  emotion = cat;
+                  break;
+                }
+              }
+            }
+
+            const nextPart = (i + 1 < parts.length) ? parts[i + 1] : '';
+            const hasVerb = VERB_HEURISTICS.some(v => nextPart.includes(v));
+
+            const spId = currentCharId;
+            const vObj = charVoices[(spId - 1) % charVoices.length] || allVoices[1];
+
+            segments.push({
+              text: stripped,
+              speaker_id: spId,
+              emotion: emotion,
+              seg_type: 'dialogue',
+              voice: vObj.name
+            });
+
+            if (hasVerb) {
+              currentCharId = (currentCharId % 7) + 1;
+            }
+          } else {
+            let emotion = 'neutral';
+            for (const [cat, words] of Object.entries(EMOTION_LEXICON)) {
+              if (words.some(w => raw.includes(w))) {
+                emotion = cat;
+                break;
+              }
+            }
+
+            segments.push({
+              text: raw,
+              speaker_id: 0,
+              emotion: emotion,
+              seg_type: 'narration',
+              voice: narratorVoiceObj.name
+            });
+          }
+        }
+        return segments;
+      }
 
       function updateVoiceLegend() {
         const selectedNarrator = narratorSelect.value;
@@ -896,7 +1017,6 @@
         }
       });
 
-      // ===== Helper: Show Error =====
       function showError(message) {
         errorBanner.textContent = message;
         errorBanner.classList.add('visible');
@@ -906,13 +1026,21 @@
         errorBanner.classList.remove('visible');
       }
 
-      // ===== Helper: Set Button State =====
+      function showInfo(message) {
+        infoBanner.innerHTML = `<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/></svg> <span>${message}</span>`;
+        infoBanner.classList.add('visible');
+      }
+
+      function hideInfo() {
+        infoBanner.classList.remove('visible');
+      }
+
       function setLoading(loading) {
         generateBtn.disabled = loading;
         if (loading) {
           generateBtn.classList.add('loading');
           if (btnIcon) btnIcon.style.display = 'none';
-          btnLabel.textContent = 'Generating…';
+          btnLabel.textContent = 'Processing…';
         } else {
           generateBtn.classList.remove('loading');
           if (btnIcon) btnIcon.style.display = 'inline-block';
@@ -920,7 +1048,6 @@
         }
       }
 
-      // ===== Render Segments =====
       function renderSegments(segments) {
         segmentsList.innerHTML = '';
 
@@ -932,9 +1059,8 @@
 
           const item = document.createElement('div');
           item.className = `segment-item s${speakerIdx % 8}`;
-          item.style.animationDelay = `${i * 50}ms`;
+          item.style.animationDelay = `${i * 40}ms`;
 
-          // Meta row
           const meta = document.createElement('div');
           meta.className = 'segment-meta';
 
@@ -960,7 +1086,6 @@
 
           item.appendChild(meta);
 
-          // Text
           const textEl = document.createElement('p');
           textEl.className = 'segment-text';
           textEl.textContent = text;
@@ -973,9 +1098,10 @@
         segmentsPanel.classList.add('visible');
       }
 
-      // ===== Generate =====
+      // ===== Generate Handler =====
       generateBtn.addEventListener('click', async () => {
         hideError();
+        hideInfo();
 
         const text = textInput.value.trim();
         if (!text) {
@@ -990,6 +1116,33 @@
         segmentsPanel.classList.remove('visible');
         audioPanel.classList.remove('visible');
 
+        const isStaticHost = window.location.hostname.endsWith('github.io') || window.location.protocol === 'file:';
+
+        // 1. If hosted statically on GitHub Pages:
+        if (isStaticHost) {
+          setTimeout(() => {
+            const segments = clientTagText(text, narratorSelect.value);
+            renderSegments(segments);
+
+            // If it matches an example, play pre-rendered neural audio
+            const matchedEx = STATIC_EXAMPLES.find(ex => ex.id === currentSelectedExampleId || ex.text.trim() === text);
+            if (matchedEx) {
+              const audioUrl = `demo/${matchedEx.id}.mp3`;
+              audioPlayer.src = audioUrl;
+              downloadBtn.href = audioUrl;
+              downloadBtn.download = `${matchedEx.id}.mp3`;
+              audioPanel.classList.add('visible');
+              showInfo(`Static Demo Mode: Multi-voice Tamil audio generated with neural TTS for "${matchedEx.title_en}". Run locally with <code>python app.py</code> for arbitrary live generation.`);
+            } else {
+              showInfo(`Client-Side NLP Demo: Real-time Tamil segmentation and emotion analysis active. Run locally with <code>python app.py</code> to synthesize custom audio via Edge TTS.`);
+            }
+
+            setLoading(false);
+          }, 350);
+          return;
+        }
+
+        // 2. Local Flask Backend Mode:
         try {
           const response = await fetch('/generate', {
             method: 'POST',
@@ -1001,13 +1154,7 @@
           });
 
           if (!response.ok) {
-            let errMsg = `Server error (${response.status})`;
-            try {
-              const errData = await response.json();
-              if (errData.error) errMsg = errData.error;
-            } catch (_) { /* ignore */ }
-            showError(errMsg);
-            return;
+            throw new Error(`Server status ${response.status}`);
           }
 
           const data = await response.json();
@@ -1019,18 +1166,21 @@
           if (data.audio_url) {
             audioPlayer.src = data.audio_url;
             downloadBtn.href = data.audio_url;
+            downloadBtn.download = 'kural_ai_audiobook.mp3';
             audioPanel.classList.add('visible');
           }
 
         } catch (err) {
-          console.error('Generation failed:', err);
-          showError('Backend not connected or network error. Running in static preview mode.');
+          // Graceful fallback to client-side tagging if server is offline
+          const segments = clientTagText(text, narratorSelect.value);
+          renderSegments(segments);
+          showInfo(`Client-side NLP active. Start local server (<code>python app.py</code>) for live Neural TTS audio synthesis.`);
         } finally {
           setLoading(false);
         }
       });
 
-      // Allow Ctrl+Enter to trigger generation
+      // Ctrl+Enter shortcut
       textInput.addEventListener('keydown', (e) => {
         if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
           e.preventDefault();
@@ -1038,7 +1188,7 @@
         }
       });
 
-      // ===== Populate Example Select Options =====
+      // ===== Populate Example Select =====
       function populateExampleDropdown(examplesList) {
         exampleSelect.innerHTML = '<option value="">— Select a passage —</option>';
         examplesList.forEach(ex => {
@@ -1049,76 +1199,63 @@
         });
       }
 
-      // ===== Load Voices (with robust fallback) =====
+      // ===== Load Voices =====
       async function loadVoices() {
-        try {
-          const res = await fetch('/voices');
-          if (res.ok) {
-            const data = await res.json();
-            if (data.voices && data.voices.length > 0) {
-              allVoices = data.voices;
-              narratorSelect.innerHTML = '';
-              data.voices.forEach(v => {
-                const opt = document.createElement('option');
-                opt.value = v.name;
-                opt.textContent = `${v.label} (${v.region} · ${v.gender})`;
-                if (v.name === (data.default_narrator || 'ta-IN-PallaviNeural')) {
-                  opt.selected = true;
-                }
-                narratorSelect.appendChild(opt);
-              });
+        if (!window.location.hostname.endsWith('github.io') && window.location.protocol !== 'file:') {
+          try {
+            const res = await fetch('/voices');
+            if (res.ok) {
+              const data = await res.json();
+              if (data.voices && data.voices.length > 0) {
+                allVoices = data.voices;
+                narratorSelect.innerHTML = '';
+                data.voices.forEach(v => {
+                  const opt = document.createElement('option');
+                  opt.value = v.name;
+                  opt.textContent = `${v.label} (${v.region} · ${v.gender})`;
+                  if (v.name === (data.default_narrator || 'ta-IN-PallaviNeural')) {
+                    opt.selected = true;
+                  }
+                  narratorSelect.appendChild(opt);
+                });
+              }
             }
-          }
-        } catch (_) {
-          // Keep static default voices
+          } catch (_) {}
         }
         updateVoiceLegend();
       }
 
-      // ===== Load Examples (with robust static fallback for GitHub Pages) =====
+      // ===== Load Examples =====
       async function loadExamples() {
-        populateExampleDropdown(STATIC_EXAMPLES); // Instant population
-        try {
-          const res = await fetch('/examples');
-          if (res.ok) {
-            const data = await res.json();
-            if (data.examples && data.examples.length > 0) {
-              populateExampleDropdown(data.examples);
+        populateExampleDropdown(STATIC_EXAMPLES);
+
+        if (!window.location.hostname.endsWith('github.io') && window.location.protocol !== 'file:') {
+          try {
+            const res = await fetch('/examples');
+            if (res.ok) {
+              const data = await res.json();
+              if (data.examples && data.examples.length > 0) {
+                populateExampleDropdown(data.examples);
+              }
             }
-          }
-        } catch (_) {
-          // Already populated with STATIC_EXAMPLES
+          } catch (_) {}
         }
       }
 
-      exampleSelect.addEventListener('change', async () => {
+      exampleSelect.addEventListener('change', () => {
         const id = exampleSelect.value;
+        currentSelectedExampleId = id;
         if (!id) return;
 
-        // Check local static examples array first (instant, works on GitHub Pages)
         const localEx = STATIC_EXAMPLES.find(ex => ex.id === id);
         if (localEx && localEx.text) {
           textInput.value = localEx.text;
           textInput.dispatchEvent(new Event('input'));
           validationMsg.classList.remove('visible');
-          return;
         }
-
-        // Fallback fetch if running on server
-        try {
-          const res = await fetch(`/examples/${id}`);
-          if (res.ok) {
-            const data = await res.json();
-            if (data.text) {
-              textInput.value = data.text;
-              textInput.dispatchEvent(new Event('input'));
-              validationMsg.classList.remove('visible');
-            }
-          }
-        } catch (_) {}
       });
 
-      // Initialize immediately
+      // Initialize
       loadVoices();
       loadExamples();
     })();
