@@ -86,6 +86,13 @@ def test_voice_mapping():
     print("  ✅ Voice mapping and narrator selection tests passed")
 
 
+def test_baseline_generation_signature():
+    print("Testing baseline generator signature...")
+    from pipeline import generate_baseline
+    assert callable(generate_baseline), "generate_baseline must be callable"
+    print("  ✅ Baseline generator test passed")
+
+
 def main():
     print("=" * 60)
     print("  Kural AI — Running Test Suite")
@@ -94,6 +101,7 @@ def main():
         test_tagger_segmentation()
         test_emotion_detection()
         test_voice_mapping()
+        test_baseline_generation_signature()
         test_examples()
         print("=" * 60)
         print("🎉 ALL TESTS PASSED SUCCESSFULLY!")

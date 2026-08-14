@@ -122,6 +122,34 @@ def generate(segments: List[Segment], narrator_voice: str = "ta-IN-PallaviNeural
     return asyncio.run(_generate_async(segments, narrator_voice=narrator_voice))
 
 
+async def _generate_baseline_async(text: str, voice: str = "ta-IN-PallaviNeural") -> str:
+    """
+    Generate a plain, single-voice, flat baseline TTS audio file for comparison.
+    No quote segmentation, no character voice switching, no emotion prosody adjustment, and no dynamic pauses.
+    """
+    ensure_output_dir()
+    job_id = uuid.uuid4().hex[:12]
+    output_filename = f"baseline_{job_id}.mp3"
+    output_path = os.path.join(OUTPUT_DIR, output_filename)
+
+    communicate = edge_tts.Communicate(
+        text=text,
+        voice=voice,
+        rate="+0%",
+        volume="+0%",
+        pitch="+0Hz",
+    )
+    await communicate.save(output_path)
+    return output_filename
+
+
+def generate_baseline(text: str, voice: str = "ta-IN-PallaviNeural") -> str:
+    """
+    Synchronous wrapper for generating flat baseline TTS comparison audio.
+    """
+    return asyncio.run(_generate_baseline_async(text, voice=voice))
+
+
 # ---------------------------------------------------------------------------
 # CLI quick test
 # ---------------------------------------------------------------------------

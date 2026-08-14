@@ -16,7 +16,7 @@ import traceback
 from flask import Flask, request, jsonify, send_from_directory, send_file
 
 from tagger import tag_text, ALL_VOICES
-from pipeline import generate, OUTPUT_DIR, ensure_output_dir
+from pipeline import generate, generate_baseline, OUTPUT_DIR, ensure_output_dir
 from examples import EXAMPLES, get_example_by_id, get_all_titles
 
 # ---------------------------------------------------------------------------
@@ -98,6 +98,44 @@ def generate_audio():
     except Exception as e:
         traceback.print_exc()
         return jsonify({"error": f"Generation failed: {str(e)}"}), 500
+
+
+@app.route("/generate_baseline", methods=["POST", "OPTIONS"])
+def generate_baseline_audio():
+    """
+    Accept raw unsegmented Tamil text, run plain single-voice flat Microsoft Edge TTS.
+    No quote segmentation, no character voices, no emotion adjustments, no pause stitching.
+
+    Request body: {"text": "...", "voice": "ta-IN-PallaviNeural"}
+    Response:     {"audio_url": "/output/baseline_xxxx.mp3", "mode": "baseline"}
+    """
+    if request.method == "OPTIONS":
+        return "", 204
+
+    try:
+        data = request.get_json(force=True, silent=True)
+        if not data or "text" not in data:
+            return jsonify({"error": "Missing 'text' field in request body"}), 400
+
+        text = data["text"].strip()
+        if not text:
+            return jsonify({"error": "Text cannot be empty"}), 400
+
+        if len(text) > 10000:
+            return jsonify({"error": "Text too long. Please keep it under 10,000 characters for the demo."}), 400
+
+        voice = data.get("voice", "ta-IN-PallaviNeural")
+        output_filename = generate_baseline(text, voice=voice)
+
+        return jsonify({
+            "audio_url": f"/output/{output_filename}",
+            "voice": voice,
+            "mode": "baseline_flat",
+        })
+
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": f"Baseline generation failed: {str(e)}"}), 500
 
 
 @app.route("/voices", methods=["GET"])
