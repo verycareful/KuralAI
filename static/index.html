@@ -1120,7 +1120,7 @@
 
           const label = document.createElement('span');
           label.className = `segment-speaker sp${speakerIdx % 8}`;
-          label.textContent = speakerIdx === 0 ? 'Narrator' : `Character ${speakerIdx}`;
+          label.textContent = seg.speaker_name || (speakerIdx === 0 ? 'Narrator' : `Character ${speakerIdx}`);
           meta.appendChild(label);
 
           if (voiceName) {

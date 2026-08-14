@@ -86,6 +86,36 @@ def test_voice_mapping():
     print("  ✅ Voice mapping and narrator selection tests passed")
 
 
+def test_gender_and_character_consistency():
+    print("Testing gender consistency and character voice persistence...")
+    sample = (
+        'பழைய ஆலமரத்தின் கீழ் முருகன் நின்றான். '
+        '"அடடா, செல்வம்! எப்படி இருக்கிறாய்?" என்றான் முருகன். '
+        'அவன் நண்பன் சிரித்தான். '
+        '"நான் நன்றாக இருக்கிறேன், முருகா!" என்றான் செல்வம். '
+        'அருகில் நின்ற வசந்தா குறுக்கிட்டாள். '
+        '"இருவரும் சாப்பிட்டுவிட்டு பேசுங்கள்" என்றாள் வசந்தா. '
+        '"சரி வசந்தா, உடனே வருகிறோம்" என்றான் முருகன்.'
+    )
+    segs = tag_text(sample, narrator_voice="ta-IN-PallaviNeural")
+
+    from tagger import ALL_VOICES
+    voice_gender = {v["name"]: v["gender"] for v in ALL_VOICES}
+
+    # Verify dialogue gender assignment
+    murugan_dialogues = [s for s in segs if "முருகன்" in s.speaker_name or s.text.startswith("அடடா") or s.text.startswith("சரி வசந்தா")]
+    assert len(murugan_dialogues) >= 2, "Murugan dialogues not detected"
+    assert all(voice_gender[s.voice] == "Male" for s in murugan_dialogues), "Murugan must have Male voice"
+    # Consistency check: All Murugan lines must use the EXACT same voice
+    assert len(set(s.voice for s in murugan_dialogues)) == 1, "Murugan voice changed across dialogue turns!"
+
+    vasantha_dialogues = [s for s in segs if "வசந்தா" in s.speaker_name or "சாப்பிட்டுவிட்டு" in s.text]
+    assert len(vasantha_dialogues) >= 1, "Vasantha dialogue not detected"
+    assert all(voice_gender[s.voice] == "Female" for s in vasantha_dialogues), "Vasantha must have Female voice"
+
+    print("  ✅ Gender consistency & character voice persistence tests passed")
+
+
 def test_baseline_generation_signature():
     print("Testing baseline generator signature...")
     from pipeline import generate_baseline
@@ -101,6 +131,7 @@ def main():
         test_tagger_segmentation()
         test_emotion_detection()
         test_voice_mapping()
+        test_gender_and_character_consistency()
         test_baseline_generation_signature()
         test_examples()
         print("=" * 60)

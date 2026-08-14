@@ -3,7 +3,7 @@ services:
     name: kural-ai
     runtime: docker
     plan: free
-    region: oregon
+    region: singapore
     healthCheckPath: /voices
     autoDeploy: true
     envVars:
