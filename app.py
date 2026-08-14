@@ -33,6 +33,24 @@ ensure_output_dir()
 
 
 # ---------------------------------------------------------------------------
+# CORS & Middleware
+# ---------------------------------------------------------------------------
+@app.after_request
+def add_cors_headers(response):
+    """Enable CORS for cross-origin requests from GitHub Pages or web clients."""
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+    return response
+
+
+@app.route("/generate", methods=["OPTIONS"])
+def generate_options():
+    """Handle pre-flight CORS OPTIONS request."""
+    return "", 204
+
+
+# ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
 @app.route("/")

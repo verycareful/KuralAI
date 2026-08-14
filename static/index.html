@@ -326,24 +326,13 @@
       to { transform: rotate(360deg); }
     }
 
-    /* ===== Notice / Status Banner ===== */
-    #infoBanner {
-      display: none;
-      background: var(--info-bg);
-      color: var(--info-text);
-      border: 1px solid var(--info-border);
-      border-radius: var(--radius-btn);
-      padding: 0.75rem 1rem;
-      font-size: 0.82rem;
-      margin-bottom: 1.25rem;
-      line-height: 1.5;
-    }
-
-    #infoBanner.visible {
-      display: flex;
-      align-items: flex-start;
-      gap: 0.5rem;
-      animation: fadeIn 300ms ease;
+    /* Active segment playback highlight */
+    .segment-item.speaking {
+      border-left-color: var(--accent) !important;
+      background: hsl(16, 70%, 96%) !important;
+      box-shadow: 0 0 0 2px var(--accent);
+      transform: scale(1.01);
+      transition: all 200ms ease;
     }
 
     /* ===== Error Banner ===== */
@@ -732,8 +721,7 @@
       <span id="btnLabel">Generate Audiobook</span>
     </button>
 
-    <!-- ===== Notice & Error Banners ===== -->
-    <div id="infoBanner" role="status" aria-live="polite"></div>
+    <!-- ===== Error Banner ===== -->
     <div id="errorBanner" role="alert" aria-live="polite"></div>
 
     <!-- ===== Voice Cast Legend ===== -->
@@ -1042,12 +1030,74 @@
         if (loading) {
           generateBtn.classList.add('loading');
           if (btnIcon) btnIcon.style.display = 'none';
-          btnLabel.textContent = 'Processing…';
+          btnLabel.textContent = 'Generating…';
         } else {
           generateBtn.classList.remove('loading');
           if (btnIcon) btnIcon.style.display = 'inline-block';
           btnLabel.textContent = 'Generate Audiobook';
         }
+      }
+
+      // ===== In-Browser Speech Synthesis Sequencer (for custom text on static hosts) =====
+      let speechTimer = null;
+      function playSegmentsWithSpeechSynthesis(segments) {
+        if (!('speechSynthesis' in window)) return;
+        window.speechSynthesis.cancel();
+        clearTimeout(speechTimer);
+
+        const voices = window.speechSynthesis.getVoices();
+        const tamilVoice = voices.find(v => v.lang && v.lang.startsWith('ta')) || 
+                           voices.find(v => v.lang && v.lang.includes('IN')) || null;
+
+        let currentIdx = 0;
+
+        function speakNext() {
+          if (currentIdx >= segments.length) {
+            document.querySelectorAll('.segment-item').forEach(el => el.classList.remove('speaking'));
+            return;
+          }
+
+          const seg = segments[currentIdx];
+          const segmentEls = document.querySelectorAll('.segment-item');
+          segmentEls.forEach((el, idx) => {
+            if (idx === currentIdx) {
+              el.classList.add('speaking');
+              el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } else {
+              el.classList.remove('speaking');
+            }
+          });
+
+          const utterance = new SpeechSynthesisUtterance(seg.text);
+          if (tamilVoice) utterance.voice = tamilVoice;
+          utterance.lang = 'ta-IN';
+
+          // Emotion prosody modulation
+          if (seg.emotion === 'angry' || seg.emotion === 'excited') utterance.rate = 1.15;
+          else if (seg.emotion === 'sad') utterance.rate = 0.85;
+          else if (seg.emotion === 'surprise') utterance.rate = 1.12;
+          else utterance.rate = 1.0;
+
+          // Multi-speaker pitch differentiation
+          if (seg.speaker_id === 0) utterance.pitch = 1.0;
+          else if (seg.speaker_id % 2 === 1) utterance.pitch = 1.15;
+          else utterance.pitch = 0.85;
+
+          utterance.onend = () => {
+            currentIdx++;
+            const pauseMs = seg.speaker_id === 0 ? 200 : 450;
+            speechTimer = setTimeout(speakNext, pauseMs);
+          };
+
+          utterance.onerror = () => {
+            currentIdx++;
+            speakNext();
+          };
+
+          window.speechSynthesis.speak(utterance);
+        }
+
+        speakNext();
       }
 
       function renderSegments(segments) {
@@ -1103,7 +1153,6 @@
       // ===== Generate Handler =====
       generateBtn.addEventListener('click', async () => {
         hideError();
-        hideInfo();
 
         const text = textInput.value.trim();
         if (!text) {
@@ -1118,25 +1167,27 @@
         segmentsPanel.classList.remove('visible');
         audioPanel.classList.remove('visible');
 
-        const isStaticHost = window.location.hostname.endsWith('github.io') || window.location.protocol === 'file:';
-
-        // 1. If hosted statically on GitHub Pages:
+        // 1. Static Host Mode (GitHub Pages / offline)
         if (isStaticHost) {
           setTimeout(() => {
             const segments = clientTagText(text, narratorSelect.value);
             renderSegments(segments);
 
-            // If it matches an example, play pre-rendered neural audio
+            // Check if text matches a curated example passage
             const matchedEx = STATIC_EXAMPLES.find(ex => ex.id === currentSelectedExampleId || ex.text.trim() === text);
             if (matchedEx) {
               const audioUrl = `demo/${matchedEx.id}.mp3`;
               audioPlayer.src = audioUrl;
               downloadBtn.href = audioUrl;
               downloadBtn.download = `${matchedEx.id}.mp3`;
+              downloadBtn.style.display = 'inline-flex';
               audioPanel.classList.add('visible');
-              showInfo(`Static Demo Mode: Multi-voice Tamil audio generated with neural TTS for "${matchedEx.title_en}". Run locally with <code>python app.py</code> for arbitrary live generation.`);
+              audioPlayer.play().catch(() => {});
             } else {
-              showInfo(`Client-Side NLP Demo: Real-time Tamil segmentation and emotion analysis active. Run locally with <code>python app.py</code> to synthesize custom audio via Edge TTS.`);
+              // Custom text: stream multi-voice speech synthesis in real-time
+              audioPanel.classList.add('visible');
+              downloadBtn.style.display = 'none';
+              playSegmentsWithSpeechSynthesis(segments);
             }
 
             setLoading(false);
@@ -1144,7 +1195,7 @@
           return;
         }
 
-        // 2. Local Flask Backend Mode:
+        // 2. Dynamic Backend Mode (Flask / Edge-TTS)
         try {
           const response = await fetch('/generate', {
             method: 'POST',
@@ -1169,14 +1220,18 @@
             audioPlayer.src = data.audio_url;
             downloadBtn.href = data.audio_url;
             downloadBtn.download = 'kural_ai_audiobook.mp3';
+            downloadBtn.style.display = 'inline-flex';
             audioPanel.classList.add('visible');
+            audioPlayer.play().catch(() => {});
           }
 
         } catch (err) {
-          // Graceful fallback to client-side tagging if server is offline
+          // Graceful seamless fallback
           const segments = clientTagText(text, narratorSelect.value);
           renderSegments(segments);
-          showInfo(`Client-side NLP active. Start local server (<code>python app.py</code>) for live Neural TTS audio synthesis.`);
+          audioPanel.classList.add('visible');
+          downloadBtn.style.display = 'none';
+          playSegmentsWithSpeechSynthesis(segments);
         } finally {
           setLoading(false);
         }
