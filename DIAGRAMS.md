@@ -2,10 +2,11 @@
 
 High-resolution PNG diagrams rendered directly from the source Mermaid code are available in the [`diagrams/`](file:///c:/Sricharan/GitHub/Kural%20AI/diagrams) directory:
 
-- 📊 [**`workflow_diagram_16x9.png`**](file:///c:/Sricharan/GitHub/Kural%20AI/diagrams/workflow_diagram_16x9.png) — *Horizontal workflow diagram proportioned for 16:9 PPT slides*
-- 🔄 [**`uml_sequence_diagram.png`**](file:///c:/Sricharan/GitHub/Kural%20AI/diagrams/uml_sequence_diagram.png) — *UML Sequence Diagram (interaction flow)*
-- 🧩 [**`uml_component_diagram.png`**](file:///c:/Sricharan/GitHub/Kural%20AI/diagrams/uml_component_diagram.png) — *UML Component & Subsystem Architecture Diagram*
-- 📐 [**`uml_class_diagram.png`**](file:///c:/Sricharan/GitHub/Kural%20AI/diagrams/uml_class_diagram.png) — *UML Class & Module Structure Diagram*
+- [**`workflow_diagram_16x9.png`**](file:///c:/Sricharan/GitHub/Kural%20AI/diagrams/workflow_diagram_16x9.png) — *Horizontal workflow diagram proportioned for 16:9 PPT slides*
+- [**`uml_state_diagram.png`**](file:///c:/Sricharan/GitHub/Kural%20AI/diagrams/uml_state_diagram.png) — *UML State Machine Diagram (lifecycle & transition states)*
+- [**`uml_sequence_diagram.png`**](file:///c:/Sricharan/GitHub/Kural%20AI/diagrams/uml_sequence_diagram.png) — *UML Sequence Diagram (interaction flow)*
+- [**`uml_component_diagram.png`**](file:///c:/Sricharan/GitHub/Kural%20AI/diagrams/uml_component_diagram.png) — *UML Component & Subsystem Architecture Diagram*
+- [**`uml_class_diagram.png`**](file:///c:/Sricharan/GitHub/Kural%20AI/diagrams/uml_class_diagram.png) — *UML Class & Module Structure Diagram*
 
 ---
 
@@ -258,3 +259,74 @@ classDiagram
     FlaskApp --> PipelineModule : invokes
     FlaskApp --> ExamplesModule : queries
 ```
+
+---
+
+## 5. UML State Machine Diagram
+
+State transitions and lifecycle events across the ingestion, NLP parsing, voice dispatch, neural synthesis, pause injection, and audio delivery stages.
+
+```mermaid
+stateDiagram-v2
+    direction LR
+    [*] --> Ingestion : POST /generate
+
+    state Ingestion {
+        [*] --> ValidatePayload
+        ValidatePayload --> CheckEncoding : UTF-8 & Bounds
+        CheckEncoding --> ParseNarrator : Choosable Voice
+        ParseNarrator --> [*]
+    }
+
+    Ingestion --> NLPTagging : Raw Text
+
+    state NLPTagging {
+        [*] --> QuoteSegmentation : Smart / ASCII / Guillemets
+        QuoteSegmentation --> SpeakerAttribution : Attribution Verbs
+        SpeakerAttribution --> EmotionDetection : 65+ Navarasa Lexicon
+        EmotionDetection --> ProsodyCalculation : Rate (-15% to +15%)
+        ProsodyCalculation --> [*]
+    }
+
+    NLPTagging --> VoiceDispatch : List[Segment]
+
+    state VoiceDispatch {
+        [*] --> BindNarrator : Speaker 0 -> Narrator
+        BindNarrator --> BindCharacters : Speakers 1..7 -> Cast Pool
+        BindCharacters --> [*]
+    }
+
+    VoiceDispatch --> AudioSynthesis : Tagged Stream
+
+    state AudioSynthesis {
+        [*] --> AsyncTTSWorker : edge_tts.Communicate()
+        AsyncTTSWorker --> StreamMP3 : Concurrent Tasks
+        StreamMP3 --> StoreTempBuffers : seg_0000.mp3 ... seg_N.mp3
+        StoreTempBuffers --> [*]
+    }
+
+    AudioSynthesis --> AudioStitching : Raw MP3 Chunks
+
+    state AudioStitching {
+        [*] --> TransitionCheck
+        state TransitionCheck <<choice>>
+        TransitionCheck --> Pause450ms : Speaker Changed
+        TransitionCheck --> Pause200ms : Same Speaker
+        Pause450ms --> ConcatAudio : PyDub
+        Pause200ms --> ConcatAudio : PyDub
+        ConcatAudio --> ExportMaster : output/UUID.mp3
+        ExportMaster --> [*]
+    }
+
+    AudioStitching --> WebDelivery : Master MP3
+
+    state WebDelivery {
+        [*] --> SendJSON : 200 OK Response
+        SendJSON --> RenderUI : Color-Coded Inspector
+        RenderUI --> PlayAudio : HTML5 Autoplay
+        PlayAudio --> [*]
+    }
+
+    WebDelivery --> [*] : Done
+```
+

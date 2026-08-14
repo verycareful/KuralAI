@@ -38,14 +38,14 @@ Users can select their preferred **Narrator Voice** from the UI, and the remaini
 
 | Voice | Region | Gender | Accent / Locale |
 |---|---|---|---|
-| `ta-IN-PallaviNeural` | 🇮🇳 India | Female | Indian Tamil (Default Narrator) |
-| `ta-IN-ValluvarNeural` | 🇮🇳 India | Male | Indian Tamil |
-| `ta-LK-KumarNeural` | 🇱🇰 Sri Lanka | Male | Sri Lankan Tamil |
-| `ta-LK-SaranyaNeural` | 🇱🇰 Sri Lanka | Female | Sri Lankan Tamil |
-| `ta-MY-KaniNeural` | 🇲🇾 Malaysia | Female | Malaysian Tamil |
-| `ta-MY-SuryaNeural` | 🇲🇾 Malaysia | Male | Malaysian Tamil |
-| `ta-SG-AnbuNeural` | 🇸🇬 Singapore | Male | Singaporean Tamil |
-| `ta-SG-VenbaNeural` | 🇸🇬 Singapore | Female | Singaporean Tamil |
+| `ta-IN-PallaviNeural` | India | Female | Indian Tamil (Default Narrator) |
+| `ta-IN-ValluvarNeural` | India | Male | Indian Tamil |
+| `ta-LK-KumarNeural` | Sri Lanka | Male | Sri Lankan Tamil |
+| `ta-LK-SaranyaNeural` | Sri Lanka | Female | Sri Lankan Tamil |
+| `ta-MY-KaniNeural` | Malaysia | Female | Malaysian Tamil |
+| `ta-MY-SuryaNeural` | Malaysia | Male | Malaysian Tamil |
+| `ta-SG-AnbuNeural` | Singapore | Male | Singaporean Tamil |
+| `ta-SG-VenbaNeural` | Singapore | Female | Singaporean Tamil |
 
 ## Emotion Detection
 
@@ -56,12 +56,12 @@ Kural AI detects **9 emotion states** using a combination of Tamil keyword match
 | Neutral | +0% | Default (no keywords or punctuation) |
 | Excited | +10% | `!` punctuation |
 | Question | +5% | `?` punctuation |
-| 😢 Sad | -15% | சோகம், கண்ணீர், வருத்தம், துன்பம், வேதனை, இழப்பு, கவலை... |
-| 😠 Angry | +15% | கோபம், சினம், ஆத்திரம், சீற்றம், வெறுப்பு, ரௌத்திரம்... |
-| 😊 Happy | +5% | மகிழ்ச்சி, சந்தோஷம், ஆனந்தம், உற்சாகம், களிப்பு... |
-| 😨 Fear | +8% | பயம், அச்சம், திகில், பீதி, நடுக்கம், பதற்றம்... |
-| 😲 Surprise | +12% | ஆச்சரியம், வியப்பு, அதிசயம், அற்புதம், திகைப்பு... |
-| 💕 Tender | -8% | அன்பு, காதல், பாசம், நேசம், அரவணைப்பு, ஆறுதல்... |
+| Sad | -15% | சோகம், கண்ணீர், வருத்தம், துன்பம், வேதனை, இழப்பு, கவலை... |
+| Angry | +15% | கோபம், சினம், ஆத்திரம், சீற்றம், வெறுப்பு, ரௌத்திரம்... |
+| Happy | +5% | மகிழ்ச்சி, சந்தோஷம், ஆனந்தம், உற்சாகம், களிப்பு... |
+| Fear | +8% | பயம், அச்சம், திகில், பீதி, நடுக்கம், பதற்றம்... |
+| Surprise | +12% | ஆச்சரியம், வியப்பு, அதிசயம், அற்புதம், திகைப்பு... |
+| Tender | -8% | அன்பு, காதல், பாசம், நேசம், அரவணைப்பு, ஆறுதல்... |
 
 The vocabulary draws from the **Navarasa** (nine classical emotions) tradition and modern Tamil usage, totalling **65+ keywords** across 6 categories.
 
