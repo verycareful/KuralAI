@@ -18,8 +18,9 @@ COPY . .
 # Create output directory
 RUN mkdir -p output
 
-# Expose port (7860 is default for Hugging Face Spaces, 5000 for standard)
+# Expose port (7860 for Hugging Face Spaces, or dynamic $PORT on Render)
 EXPOSE 7860
+ENV PORT=7860
 
 # Run Flask server
 CMD ["python", "app.py"]

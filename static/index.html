@@ -977,10 +977,10 @@
 
       // ===== Backend API Configuration =====
       // When accessed from localhost or local Flask, use relative path ''.
-      // When accessed across origins, connect to the active backend endpoint.
-      const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+      // When accessed on GitHub Pages (HTTPS), connect to the live Render HTTPS backend.
+      const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
         ? '' 
-        : 'http://localhost:5000';
+        : 'https://kural-ai.onrender.com';
 
       // ===== DOM References =====
       const textInput      = document.getElementById('textInput');
@@ -1073,6 +1073,16 @@
       function showError(message) {
         errorBanner.textContent = message;
         errorBanner.classList.add('visible');
+      }
+
+      function formatApiError(err) {
+        if (err.message && (err.message.includes('Failed to fetch') || err.message.includes('NetworkError'))) {
+          if (window.location.protocol === 'https:' && (API_BASE.includes('http://localhost') || API_BASE.includes('http://127.0.0.1'))) {
+            return 'Browser security blocks HTTPS pages (like GitHub Pages) from calling local HTTP backends (Mixed Content). To generate live audio locally, open http://localhost:5000 directly in your browser.';
+          }
+          return 'Could not connect to backend server. Please verify python app.py is running on http://localhost:5000.';
+        }
+        return `Live generation failed: ${err.message}`;
       }
 
       function hideError() {
@@ -1199,7 +1209,7 @@
 
         } catch (err) {
           console.error('Generation error:', err);
-          showError(`Live generation failed: ${err.message}. Please verify python app.py is running.`);
+          showError(formatApiError(err));
         } finally {
           setLoading(false);
         }
@@ -1352,7 +1362,7 @@
 
         } catch (err) {
           console.error('Baseline generation error:', err);
-          showError(`Baseline generation failed: ${err.message}`);
+          showError(formatApiError(err));
         } finally {
           setBaselineLoading(false);
         }

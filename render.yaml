@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: kural-ai
+    runtime: docker
+    plan: free
+    region: oregon
+    healthCheckPath: /voices
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: 10000
