@@ -1,4 +1,22 @@
+# Local working files & notes
+local/
+.obsidian/
+
+# Generated media
 output/
+
+# Python cache & build
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Environment
 .env
+.venv
+env/
+venv/
+
+# OS artifacts
+.DS_Store
+Thumbs.db
