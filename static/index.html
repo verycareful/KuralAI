@@ -267,39 +267,63 @@
       display: inline-flex;
     }
 
-    /* ===== Generate Button ===== */
-    #generateBtn {
+    /* ===== Action Buttons Grid ===== */
+    .actions-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 0.85rem;
+      margin-bottom: 1.25rem;
+    }
+
+    @media (max-width: 650px) {
+      .actions-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .btn-primary, .btn-secondary {
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 0.5rem;
       width: 100%;
-      padding: 0.9rem 1.5rem;
+      padding: 0.85rem 1.25rem;
       font-family: var(--font-ui);
-      font-size: 1rem;
+      font-size: 0.95rem;
       font-weight: 600;
-      letter-spacing: 0.02em;
+      letter-spacing: 0.01em;
+      border-radius: var(--radius-btn);
+      cursor: pointer;
+      box-shadow: var(--shadow-sm);
+      transition: all 180ms ease;
+    }
+
+    .btn-primary {
       color: white;
       background: var(--accent);
       border: none;
-      border-radius: var(--radius-btn);
-      cursor: pointer;
       box-shadow: var(--shadow-md);
-      transition: background 200ms ease, transform 150ms ease, box-shadow 200ms ease;
-      margin-bottom: 1.25rem;
     }
 
-    #generateBtn:hover:not(:disabled) {
+    .btn-primary:hover:not(:disabled) {
       background: var(--accent-hover);
       box-shadow: var(--shadow-lg);
       transform: translateY(-1px);
     }
 
-    #generateBtn:active:not(:disabled) {
-      transform: translateY(0);
+    .btn-secondary {
+      color: var(--text);
+      background: var(--surface);
+      border: 1.5px solid var(--border);
     }
 
-    #generateBtn:disabled {
+    .btn-secondary:hover:not(:disabled) {
+      background: var(--surface-hover);
+      border-color: var(--text-muted);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary:disabled, .btn-secondary:disabled {
       opacity: 0.7;
       cursor: not-allowed;
     }
@@ -307,15 +331,20 @@
     /* Loading spinner */
     .spinner {
       display: none;
-      width: 18px;
-      height: 18px;
+      width: 16px;
+      height: 16px;
       border: 2px solid rgba(255, 255, 255, 0.35);
       border-top-color: white;
       border-radius: 50%;
       animation: spin 700ms linear infinite;
     }
 
-    #generateBtn.loading .spinner {
+    .btn-secondary .spinner {
+      border: 2px solid rgba(0, 0, 0, 0.2);
+      border-top-color: var(--text);
+    }
+
+    .btn-primary.loading .spinner, .btn-secondary.loading .spinner {
       display: inline-block;
     }
 
@@ -831,14 +860,24 @@
       </div>
     </section>
 
-    <!-- ===== Generate Button ===== -->
-    <button id="generateBtn" type="button">
-      <span class="spinner" aria-hidden="true"></span>
-      <span id="btnIcon">
-        <svg class="icon icon-lg" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-      </span>
-      <span id="btnLabel">Generate Audiobook</span>
-    </button>
+    <!-- ===== Action Buttons ===== -->
+    <div class="actions-grid">
+      <button id="generateBtn" type="button" class="btn-primary">
+        <span class="spinner" aria-hidden="true"></span>
+        <span id="btnIcon">
+          <svg class="icon icon-lg" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        </span>
+        <span id="btnLabel">Generate Expressive Audiobook</span>
+      </button>
+
+      <button id="generatePlainTopBtn" type="button" class="btn-secondary">
+        <span class="spinner" aria-hidden="true"></span>
+        <span id="plainTopBtnIcon">
+          <svg class="icon icon-lg" viewBox="0 0 24 24"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
+        </span>
+        <span id="plainTopBtnLabel">Generate Plain TTS (Baseline)</span>
+      </button>
+    </div>
 
     <!-- ===== Error Banner ===== -->
     <div id="errorBanner" role="alert" aria-live="polite"></div>
@@ -1158,21 +1197,107 @@
         }
       });
 
+      const generatePlainTopBtn = document.getElementById('generatePlainTopBtn');
+      const plainTopBtnLabel    = document.getElementById('plainTopBtnLabel');
+      const plainTopBtnIcon     = document.getElementById('plainTopBtnIcon');
+
+      // ===== Static Example Passages Dataset =====
+      const EXAMPLES = [
+        {
+          id: 'village_reunion',
+          title: 'கிராமத்தில் மறுசந்திப்பு',
+          title_en: 'Village Reunion',
+          text: 'பத்து வருடங்களுக்குப் பிறகு முருகன் தன் சொந்த கிராமத்திற்குத் திரும்பினான். பழைய ஆலமரம் இன்னும் அங்கேயே நின்றது. அதன் நிழலில் ஒரு பழக்கமான உருவம் தெரிந்தது.\n\n"அடடா, முருகனா? நம்பவே முடியவில்லை!" என்றான் செல்வம்.\n\nமுருகன் ஆச்சரியத்துடன் நின்றான்.\n\n"செல்வம்! எவ்வளவு நாள் ஆகிவிட்டது! உன்னைப் பார்த்து மிகவும் சந்தோஷமாக இருக்கிறது" என்றான் முருகன்.\n\n"நீ ஊரை விட்டுப் போனப்போது எனக்கு ரொம்ப வருத்தமாக இருந்தது. ஆனால் இப்போது திரும்பி வந்திருக்கிறாய், அதுவே போதும்" என்றான் செல்வம்.\n\nஇருவரும் ஆலமரத்தின் கீழ் அமர்ந்து, பழைய நினைவுகளைப் பகிர்ந்துகொண்டார்கள். காலை வெயில் அவர்கள் முகத்தில் மகிழ்ச்சியாகப் படர்ந்தது.'
+        },
+        {
+          id: 'hospital_scene',
+          title: 'மருத்துவமனையில் ஒரு நாள்',
+          title_en: 'A Day at the Hospital',
+          text: 'மருத்துவமனையின் காத்திருப்பு அறையில் லட்சுமி பதற்றத்துடன் அமர்ந்திருந்தாள். அவள் கணவன் ராஜா அறுவை சிகிச்சையில் இருந்தான்.\n\n"அம்மா, பயப்படாதீர்கள். எல்லாம் சரியாகும்" என்றான் மகன் கார்த்திக்.\n\nலட்சுமி கண்ணீரை துடைத்தாள்.\n\n"எனக்கு மிகவும் பயமாக இருக்கிறது. உன் அப்பாவுக்கு ஒன்றும் ஆகிவிடக்கூடாது" என்றாள் லட்சுமி.\n\nமூன்று மணி நேரம் கழித்து, மருத்துவர் வெளியே வந்தார்.\n\n"கவலைப்படாதீர்கள். அறுவை சிகிச்சை வெற்றிகரமாக முடிந்தது!" என்றார் மருத்துவர்.\n\nலட்சுமியின் முகத்தில் நிம்மதி பரவியது. கார்த்திக் தன் அம்மாவை அரவணைத்தான்.\n\n"நன்றி கடவுளே! ஆனந்தம் தாங்கவில்லை!" என்றாள் லட்சுமி.'
+        },
+        {
+          id: 'school_competition',
+          title: 'பள்ளிப் போட்டி',
+          title_en: 'The School Competition',
+          text: 'பேச்சுப் போட்டியின் நாள் வந்துவிட்டது. தமிழ்ச்செல்வி மேடையின் பின்னால் நடுங்கிக்கொண்டிருந்தாள்.\n\n"எனக்கு மிகவும் பயமாக இருக்கிறது. நான் மறந்துவிடுவேனோ?" என்றாள் தமிழ்ச்செல்வி.\n\nஆசிரியர் மீனாட்சி அவளருகில் வந்தாள்.\n\n"பயப்படாதே! நீ நன்றாகத் தயாராகியிருக்கிறாய். உன்னால் முடியும்" என்றாள் ஆசிரியர்.\n\nதமிழ்ச்செல்வி மேடையில் ஏறினாள். முதல் சில வரிகள் நடுக்கத்துடன் வந்தன. ஆனால் மெல்ல மெல்ல அவள் குரலில் உற்சாகமும் தன்னம்பிக்கையும் வந்தது.\n\nபத்து நிமிடங்கள் கழித்து, பார்வையாளர்கள் எழுந்து நின்று கைதட்டினார்கள்.\n\n"முதல் பரிசு — தமிழ்ச்செல்வி!" என்று அறிவித்தார் தலைமை ஆசிரியர்.\n\n"ஆஹா! நம்பவே முடியவில்லை! மிகவும் சந்தோஷம்!" என்றாள் தமிழ்ச்செல்வி.\n\nஅவள் கண்களில் மகிழ்ச்சிக் கண்ணீர் வழிந்தது.'
+        },
+        {
+          id: 'fisher_storm',
+          title: 'மீனவனும் புயலும்',
+          title_en: 'The Fisherman and the Storm',
+          text: 'கடல் அன்று காலையில் அமைதியாக இருந்தது. வேலன் தன் படகில் மீன்பிடிக்கப் புறப்பட்டான்.\n\nமதியம் ஆனதும் வானம் திடீரென இருண்டது. காற்று பயங்கரமாக வீசத் தொடங்கியது.\n\n"ஐயோ! புயல் வருகிறது! கரைக்குத் திரும்ப வேண்டும்!" என்று வேலன் அலறினான்.\n\nஅலைகள் படகை ஆட்டிப்படைத்தன. வேலன் பீதியுடன் கயிறுகளை இறுக்கிப் பிடித்தான்.\n\n"கடவுளே, என்னைக் காப்பாற்று! என் குடும்பத்தை நினைத்தால் கண்ணீர் வருகிறது" என்றான் வேலன்.\n\nஇரண்டு மணி நேரம் போராடிய பிறகு, புயல் மெல்ல தணிந்தது. தொலைவில் கரை தெரிந்தது.\n\nவேலன் பத்திரமாகக் கரை சேர்ந்தான். அவன் மனைவி வசந்தா ஓடி வந்தாள்.\n\n"நீ உயிரோடு திரும்பிவிட்டாய்! எனக்கு ஆனந்தம் தாங்கவில்லை!" என்றாள் வசந்தா.\n\nவேலன் அவளை அன்புடன் அரவணைத்தான். அந்த நாள் அவன் வாழ்வில் மறக்க முடியாத நாளாக மாறியது.'
+        },
+        {
+          id: 'family_dispute',
+          title: 'குடும்பச் சண்டை',
+          title_en: 'The Family Dispute',
+          text: 'அப்பா இறந்த பிறகு, சொத்துப் பிரச்சனை குடும்பத்தை உலுக்கியது.\n\n"இந்த நிலம் முழுவதும் எனக்குத்தான் சேர வேண்டும்! நான்தான் அப்பாவை கடைசி வரை பார்த்துக்கொண்டேன்!" என்றான் மூத்த மகன் சுரேஷ்.\n\nஇளைய மகன் ரமேஷ் கோபத்துடன் எழுந்தான்.\n\n"என்ன அநியாயம் இது? நானும் அப்பாவின் மகன்தான்! எனக்கு எந்த உரிமையும் இல்லையா?" என்றான் ரமேஷ்.\n\nஅம்மா சரோஜா கண்ணீருடன் குறுக்கிட்டாள்.\n\n"நிறுத்துங்கள்! உங்கள் அப்பா இருந்திருந்தால் இதைப் பார்த்து எவ்வளவு வேதனைப்பட்டிருப்பார். சகோதரர்களுக்குள் இப்படி சண்டையா? வெட்கமாக இல்லையா?" என்றாள் சரோஜா.\n\nஇருவரும் தலை குனிந்தார்கள். அம்மாவின் கண்ணீர் அவர்களின் கோபத்தை ஆற்றியது.\n\n"சரி அம்மா, மன்னிக்கவும். நாங்கள் பேசி சரி செய்துகொள்கிறோம்" என்றான் சுரேஷ்.\n\nரமேஷ் அண்ணனின் கையைப் பிடித்தான். குடும்பப் பாசம் எல்லாவற்றையும் வென்றது.'
+        },
+        {
+          id: 'love_letter',
+          title: 'காதல் கடிதம்',
+          title_en: 'The Love Letter',
+          text: 'பழைய புத்தகங்களை சுத்தம் செய்யும்போது, மஞ்சள் நிற காகிதம் ஒன்று கீழே விழுந்தது. அனிதா அதை எடுத்துப் பார்த்தாள்.\n\nஅது பிரவீனின் கடிதம்.\n\n"என் அன்பான அனிதாவுக்கு, உன் நினைவுகள் இல்லாத நாளே எனக்கு இல்லை. உன் சிரிப்பு என் வாழ்வின் இசை. நீ என் பக்கம் இல்லாத நேரங்களில் ஏக்கம் தாங்கவில்லை. என்றும் உன்னை நேசிக்கும் பிரவீன்" என்று எழுதியிருந்தது.\n\nஅனிதா கண்களில் கண்ணீர் வழிந்தது.\n\n"பிரவீன்... எத்தனை வருடங்கள் ஆகிவிட்டன" என்று மெல்ல முணுமுணுத்தாள்.\n\nஅவள் அந்தக் கடிதத்தை நெஞ்சோடு அணைத்துக்கொண்டாள். பழைய காதல் நினைவுகள் மனதில் வெள்ளமாகப் பாய்ந்தன.'
+        },
+        {
+          id: 'market_day',
+          title: 'சந்தை நாள்',
+          title_en: 'Market Day',
+          text: 'ஞாயிற்றுக்கிழமை சந்தை நாள். தெருவில் கடைகள் வரிசையாக நின்றன.\n\nபாட்டி கமலா காய்கறிக் கடையில் நின்றாள்.\n\n"தக்காளி கிலோ எவ்வளவு?" என்றாள் கமலா.\n\n"நாற்பது ரூபாய் பாட்டி" என்றான் கடைக்காரன் முத்து.\n\n"என்ன, நாற்பது ரூபாயா? கொள்ளையடிக்கிறாய்! இருபது ரூபாய்க்கு தா" என்றாள் கமலா.\n\n"ஐயோ பாட்டி, எனக்கே அவ்வளவு விலை. முப்பது ரூபாய் கொடுங்கள்" என்றான் முத்து.\n\nகமலா சிரித்தாள்.\n\n"சரி சரி, உன் முகத்தைப் பார்த்து முப்பது கொடுக்கிறேன். ஆனால் கொத்தமல்லி இலவசமாகப் போடு" என்றாள் கமலா.\n\nமுத்துவும் சிரித்தான். சந்தையின் கலகலப்பு காலை முழுவதும் தொடர்ந்தது.'
+        },
+        {
+          id: 'midnight_mystery',
+          title: 'நள்ளிரவு மர்மம்',
+          title_en: 'Midnight Mystery',
+          text: 'நள்ளிரவு ஒரு மணி. பழைய வீட்டில் ஏதோ சத்தம் கேட்டது. பிரியா படுக்கையிலிருந்து திடுக்கிட்டு எழுந்தாள்.\n\n"யாரது?" என்று கத்தினாள் பிரியா.\n\nபதில் இல்லை. ஆனால் படிக்கட்டில் காலடி ஓசை கேட்டது.\n\nபிரியா நடுங்கிக்கொண்டே மெல்ல கதவைத் திறந்தாள். இருட்டில் ஒரு நிழல் நகர்வது தெரிந்தது.\n\n"ஐயோ! பயமாக இருக்கிறது! யாராவது இருக்கிறீர்களா?" என்றாள் பிரியா.\n\nதிடீரென விளக்கு எரிந்தது.\n\n"ஆச்சரியம்!" என்றாள் பிரியா.\n\nஅது அவள் பூனை மிட்டு! சமையலறையில் பாலைக் கொட்டிவிட்டு ஓடிக்கொண்டிருந்தது.\n\n"அட மிட்டு! நீயா? என்னை இவ்வளவு பயமுறுத்திவிட்டாய்!" என்று சிரித்தாள் பிரியா.\n\nஅவள் பூனையை எடுத்து அரவணைத்தாள். நள்ளிரவு பயம் சிரிப்பில் முடிந்தது.'
+        }
+      ];
+
+      // ===== Load Examples into Dropdown =====
+      function populateExampleDropdown(examplesList) {
+        exampleSelect.innerHTML = '<option value="">— Select a passage —</option>';
+        examplesList.forEach(ex => {
+          const opt = document.createElement('option');
+          opt.value = ex.id;
+          opt.textContent = `${ex.title} — ${ex.title_en}`;
+          exampleSelect.appendChild(opt);
+        });
+      }
+
+      exampleSelect.addEventListener('change', () => {
+        const id = exampleSelect.value;
+        if (!id) return;
+
+        const ex = EXAMPLES.find(item => item.id === id);
+        if (ex && ex.text) {
+          textInput.value = ex.text;
+          textInput.dispatchEvent(new Event('input'));
+          validationMsg.classList.remove('visible');
+        }
+      });
+
       // ===== Baseline Plain TTS Generation Handler =====
       function setBaselineLoading(loading) {
         generateBaselineBtn.disabled = loading;
+        generatePlainTopBtn.disabled = loading;
         if (loading) {
           generateBaselineBtn.classList.add('loading');
+          generatePlainTopBtn.classList.add('loading');
           if (baselineBtnIcon) baselineBtnIcon.style.display = 'none';
+          if (plainTopBtnIcon) plainTopBtnIcon.style.display = 'none';
           baselineBtnLabel.textContent = 'Generating Plain Audio…';
+          plainTopBtnLabel.textContent = 'Generating Plain Audio…';
         } else {
           generateBaselineBtn.classList.remove('loading');
+          generatePlainTopBtn.classList.remove('loading');
           if (baselineBtnIcon) baselineBtnIcon.style.display = 'inline-block';
+          if (plainTopBtnIcon) plainTopBtnIcon.style.display = 'inline-block';
           baselineBtnLabel.textContent = 'Generate Plain Comparison';
+          plainTopBtnLabel.textContent = 'Generate Plain TTS (Baseline)';
         }
       }
 
-      generateBaselineBtn.addEventListener('click', async () => {
+      async function executeBaselineGeneration() {
         hideError();
 
         const text = textInput.value.trim();
@@ -1183,6 +1308,7 @@
         }
 
         setBaselineLoading(true);
+        audioPanel.classList.add('visible');
 
         try {
           const endpoint = API_BASE ? `${API_BASE}/generate_baseline` : '/generate_baseline';
@@ -1222,7 +1348,10 @@
         } finally {
           setBaselineLoading(false);
         }
-      });
+      }
+
+      generateBaselineBtn.addEventListener('click', executeBaselineGeneration);
+      generatePlainTopBtn.addEventListener('click', executeBaselineGeneration);
 
       // Ctrl+Enter shortcut
       textInput.addEventListener('keydown', (e) => {
@@ -1232,72 +1361,9 @@
         }
       });
 
-      // ===== Load Voices from Live Backend =====
-      async function loadVoices() {
-        try {
-          const endpoint = API_BASE ? `${API_BASE}/voices` : '/voices';
-          const res = await fetch(endpoint);
-          if (res.ok) {
-            const data = await res.json();
-            if (data.voices && data.voices.length > 0) {
-              allVoices = data.voices;
-              narratorSelect.innerHTML = '';
-              data.voices.forEach(v => {
-                const opt = document.createElement('option');
-                opt.value = v.name;
-                opt.textContent = `${v.label} (${v.region} · ${v.gender})`;
-                if (v.name === (data.default_narrator || 'ta-IN-PallaviNeural')) {
-                  opt.selected = true;
-                }
-                narratorSelect.appendChild(opt);
-              });
-            }
-          }
-        } catch (_) {}
-        updateVoiceLegend();
-      }
-
-      // ===== Load Examples from Live Backend =====
-      async function loadExamples() {
-        try {
-          const endpoint = API_BASE ? `${API_BASE}/examples` : '/examples';
-          const res = await fetch(endpoint);
-          if (res.ok) {
-            const data = await res.json();
-            if (data.examples && data.examples.length > 0) {
-              exampleSelect.innerHTML = '<option value="">— Select a passage —</option>';
-              data.examples.forEach(ex => {
-                const opt = document.createElement('option');
-                opt.value = ex.id;
-                opt.textContent = `${ex.title} — ${ex.title_en}`;
-                exampleSelect.appendChild(opt);
-              });
-            }
-          }
-        } catch (_) {}
-      }
-
-      exampleSelect.addEventListener('change', async () => {
-        const id = exampleSelect.value;
-        if (!id) return;
-
-        try {
-          const endpoint = API_BASE ? `${API_BASE}/examples/${id}` : `/examples/${id}`;
-          const res = await fetch(endpoint);
-          if (res.ok) {
-            const data = await res.json();
-            if (data.text) {
-              textInput.value = data.text;
-              textInput.dispatchEvent(new Event('input'));
-              validationMsg.classList.remove('visible');
-            }
-          }
-        } catch (_) {}
-      });
-
       // Initialize
       loadVoices();
-      loadExamples();
+      populateExampleDropdown(EXAMPLES);
     })();
   </script>
 </body>
