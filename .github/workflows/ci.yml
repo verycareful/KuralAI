@@ -1,0 +1,108 @@
+name: CI — Test & Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  # ── Job 1: Lint & Test the Python pipeline ──────────────────────────
+  test:
+    name: Test Pipeline
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run tagger unit test
+        run: python -c "
+          from tagger import tag_text;
+          segs = tag_text('அவன் வந்தான். \"வணக்கம்!\" என்றான் ராமன்.');
+          assert len(segs) >= 2, f'Expected >=2 segments, got {len(segs)}';
+          assert any(s.seg_type == 'dialogue' for s in segs), 'No dialogue detected';
+          assert any(s.emotion == 'excited' for s in segs), 'Exclamation emotion not detected';
+          print('✅ Tagger tests passed');
+          "
+
+      - name: Run emotion keyword tests
+        run: python -c "
+          from tagger import detect_emotion;
+          assert detect_emotion('கோபம் வந்தது') == 'angry', 'angry failed';
+          assert detect_emotion('சோகம் நிறைந்தது') == 'sad', 'sad failed';
+          assert detect_emotion('மகிழ்ச்சி பொங்கியது') == 'happy', 'happy failed';
+          assert detect_emotion('பயம் வந்தது') == 'fear', 'fear failed';
+          assert detect_emotion('ஆச்சரியம் ஆனது') == 'surprise', 'surprise failed';
+          assert detect_emotion('அன்பு நிறைந்தது') == 'tender', 'tender failed';
+          assert detect_emotion('என்ன நடந்தது?') == 'question', 'question failed';
+          assert detect_emotion('வா போகலாம்!') == 'excited', 'excited failed';
+          assert detect_emotion('அவன் வந்தான்') == 'neutral', 'neutral failed';
+          assert detect_emotion('முகத்தில் சோகம்') == 'sad', 'கத்த false positive in முகத்தில்';
+          print('✅ Emotion detection tests passed (10/10)');
+          "
+
+      - name: Verify examples load
+        run: python -c "
+          from examples import EXAMPLES, get_all_titles;
+          assert len(EXAMPLES) >= 8, f'Expected >=8 examples, got {len(EXAMPLES)}';
+          titles = get_all_titles();
+          assert all('id' in t and 'title' in t for t in titles);
+          print(f'✅ {len(EXAMPLES)} examples loaded successfully');
+          "
+
+  # ── Job 2: Deploy frontend showcase to GitHub Pages ─────────────────
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create Pages directory
+        run: |
+          mkdir -p _site
+          cp static/index.html _site/index.html
+
+          # Create a 404 page that redirects to index
+          cat > _site/404.html << 'EOF'
+          <!DOCTYPE html>
+          <html><head><meta http-equiv="refresh" content="0;url=/KuralAI/"></head></html>
+          EOF
+
+          # Create a nojekyll file to skip Jekyll processing
+          touch _site/.nojekyll
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
